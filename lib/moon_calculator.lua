@@ -44,7 +44,60 @@ function MoonCalc.calculate_moon_phase(jd)
   return phase
 end
 
--- Calculate moon azimuth and altitude
+-- Calculate simplified moon position for consistent visibility in northern hemisphere
+-- Returns a position based on the current month and hour to create a natural arc
+function MoonCalc.calculate_simplified_position(jd, month, hour)
+  -- Base altitude for the moon (adjust for northern hemisphere seasons)
+  local base_altitude = 30  -- Moderate altitude by default
+  
+  -- Adjust altitude by season (higher in winter, lower in summer)
+  local seasonal_offset = math.cos((month - 1) * math.pi / 6) * 15
+  
+  -- Adjust altitude by time of day (hour angle effect)
+  -- Night hours (18-6): Moon moves in an arc from east to west
+  -- Day hours (6-18): Moon is generally lower or below horizon
+  local time_offset = 0
+  local time_azimuth = 0
+  
+  if hour >= 18 or hour < 6 then
+    -- Night hours: Moon is visible and moves across the sky
+    local night_hour = (hour >= 18) and (hour - 18) or (hour + 6)
+    local night_progress = night_hour / 12  -- 0.0 to 1.0 across the night
+    
+    -- Arc from east to west (120 to 240 degrees)
+    time_azimuth = 120 + night_progress * 120
+    
+    -- Arc up and down (altitude peaks at midnight)
+    local midnight_factor = 1.0 - math.abs(night_progress - 0.5) * 2  -- 0->1->0 across night
+    time_offset = midnight_factor * 20  -- Up to 20 degrees higher at midnight
+  else
+    -- Day hours: Moon is lower, or potentially below horizon
+    local day_hour = hour - 6
+    local day_progress = day_hour / 12  -- 0.0 to 1.0 across the day
+    
+    -- Moon generally in western sky in morning, eastern in afternoon
+    time_azimuth = (day_progress < 0.5) and (240 + day_progress * 60) or (60 + day_progress * 60)
+    
+    -- Lower in sky during day
+    time_offset = -10 - day_progress * 10  -- -10 to -20 degrees lower during day
+  end
+  
+  local altitude = base_altitude + seasonal_offset + time_offset
+  
+  -- Set azimuth based on time of day
+  local azimuth = time_azimuth
+  
+  -- Add some natural variation based on day
+  local day_of_month = (jd % 30)
+  azimuth = azimuth + (day_of_month - 15)  -- Vary by ±15 degrees east-west
+  
+  return {
+    azimuth = azimuth % 360,
+    altitude = altitude
+  }
+end
+
+-- Calculate moon azimuth and altitude (original astronomical method)
 function MoonCalc.calculate_moon_position(jd, latitude, longitude)
   -- This is a simplified implementation. Actual astronomical calculations are more complex.
   -- Lunar cycle (days)
@@ -101,7 +154,7 @@ function MoonCalc.calculate_moon_position(jd, latitude, longitude)
 end
 
 -- Calculate the screen position (x, y) of the moon with the specified observation conditions
-function MoonCalc.calculate_screen_position(azimuth, altitude, view_azimuth, fov, screen_width, screen_height)
+function MoonCalc.calculate_screen_position(azimuth, altitude, view_azimuth, fov, screen_width, screen_height, radius)
   -- Center coordinates of the screen
   local center_x = screen_width / 2
   local center_y = screen_height / 2
@@ -118,9 +171,10 @@ function MoonCalc.calculate_screen_position(azimuth, altitude, view_azimuth, fov
   local vertical_fov = fov * (screen_height / screen_width)
   local y = center_y - (altitude / (vertical_fov/2)) * (screen_height / 2)
   
-  -- Check if it's within the screen bounds
+  -- Check if it's within the screen bounds (with a small margin to allow partial visibility)
   local visible = true
-  if x < 0 or x > screen_width or y < 0 or y > screen_height then
+  local margin = radius and radius * 1.2 or 5 -- Use default margin if radius is nil
+  if x < -margin or x > screen_width + margin or y < -margin or y > screen_height + margin then
     visible = false
   end
   

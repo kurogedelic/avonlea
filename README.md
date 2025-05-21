@@ -21,7 +21,7 @@ Avonlea creates a peaceful ambient soundscape inspired by the Lake of Shining Wa
 
 #### Visual & Interaction
 - **K2** — Toggle moon info display and print debug info
-- **K3** — Update to current time (affects moon phase and position)
+- **K3** — Update to current time
 
 ---
 
@@ -33,7 +33,7 @@ Avonlea creates a peaceful ambient soundscape inspired by the Lake of Shining Wa
   - Distant trees on hillsides
   - Lake surface with glints reflecting moonlight
   - Reeds swaying in the breeze
-- Realistic moon display with correct phase based on date/time
+- Realistic moon display with correct phase based on real-time date
 - Wind speed parameter affecting both sound and visual animation
 
 ---

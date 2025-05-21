@@ -4,7 +4,7 @@
 -- Handles the rendering of stars, moon, hills, lake and reeds
 
 -- Set fixed global random seed to ensure consistency
-math.randomseed(12345)
+math.randomseed(1908)
 
 local visual = {}
 
@@ -184,29 +184,43 @@ end
 
 -- Draw the moon
 function visual.draw_moon(t)
-  -- Don't draw if moon is off-screen
+  -- Don't draw if moon is off-screen or below horizon
   if not visual.moon.visible then return end
+  if visual.moon.altitude < -5 then return end -- Definitely below horizon
 
   -- Only draw if moon is visible on screen
   local x, y = visual.moon.x, visual.moon.y
   local radius = visual.moon.size / 2
 
+  -- Determine brightness based on altitude
+  -- When altitude is near horizon, reduce brightness
+  local altitude_brightness = 1.0
+  if visual.moon.altitude < 10 and visual.moon.altitude >= 0 then
+    -- Moon near horizon (atmospheric extinction)
+    altitude_brightness = 0.5 + (visual.moon.altitude / 10) * 0.5
+  elseif visual.moon.altitude < 0 and visual.moon.altitude >= -5 then
+    -- Moon just below horizon (still partially visible due to atmospheric refraction)
+    altitude_brightness = 0.5 * ((visual.moon.altitude + 5) / 5)
+  end
+
   -- Select drawing method based on moon phase
   local phase = visual.moon.phase -- range 0-1
 
-  -- Check for new moon
+  -- Check for new moon - show very faint outline
   if phase < 0.05 or phase > 0.95 then
-    -- Near new moon - don't draw anything (too dark or too small to see)
-    return
+    -- New moon - still draw a very faint outline
+    local level = math.max(1, math.floor(1 * altitude_brightness))
+    screen.level(level)
+    screen.circle(x, y, radius)
+    screen.stroke()
   elseif phase > 0.45 and phase < 0.55 then
-    -- Near full moon - simple circle
-    screen.level(15) -- white
+    -- Near full moon - simple bright circle
+    local level = math.max(1, math.floor(15 * altitude_brightness))
+    screen.level(level)
     screen.circle(x, y, radius)
     screen.fill()
   else
     -- For crescent and quarter moons
-    -- Simple drawing using two circles
-    local curve
     local waxing = phase < 0.5 -- Waxing is 0.0-0.5, waning is 0.5-1.0
 
     -- Normalize moon phase
@@ -217,44 +231,27 @@ function visual.draw_moon(t)
       norm_phase = (1 - phase) * 2 -- 0.5-1.0 → 1.0-0.0
     end
 
-    -- Curvature value for natural crescent shape
-    curve = math.sin(norm_phase * math.pi / 2) * radius * 1.1
-
-    -- Calculate tilt for waxing/waning crescent
-    local offset_x, offset_y
-
-    -- Calculate 45-degree tilt for moon (skip if not possible)
-    local angle = math.rad(45) -- Convert 45 degrees to radians
-    local offset_len = curve
-
-    if waxing then
-      -- Waxing: tilt toward top-right
-      offset_x = -offset_len * math.cos(angle)
-      offset_y = -offset_len * math.sin(angle)
-    else
-      -- Waning: tilt toward top-left
-      offset_x = offset_len * math.cos(angle)
-      offset_y = -offset_len * math.sin(angle)
-    end
+    -- Curvature value for crescent shape based on normalized phase
+    local curve = math.sin(norm_phase * math.pi / 2) * radius * 1.6
 
     -- Draw moon outline (circle)
-    screen.level(15) -- white
+    local level = math.max(1, math.floor(15 * altitude_brightness))
+    screen.level(level)
     screen.circle(x, y, radius)
     screen.fill()
 
-    -- Draw shadow part (subtract another circle using blend mode)
+    -- Calculate offset for shadow circle
+    local offset_x = waxing and -curve or curve
+
+    -- Draw shadow part using XOR blend mode
     screen.level(0)      -- black
     screen.blend_mode(1) -- XOR mode: erase overlapping parts
-
-    -- Draw tilted circle
-    screen.circle(x + offset_x, y + offset_y, radius * 1.2)
+    screen.circle(x + offset_x, y, radius * 1.2)
     screen.fill()
-
-    -- Reset blend mode
-    screen.blend_mode(0)
+    screen.blend_mode(0) -- Reset blend mode
   end
 
-  -- Display moon information
+  -- Display moon information if requested
   if visual.params:get("show_moon_info") == 2 then
     screen.move(2, 10)
     screen.level(15)
@@ -263,14 +260,18 @@ function visual.draw_moon(t)
     screen.text(string.format("Az: %.1f", visual.moon.azimuth))
     screen.move(2, 26)
     screen.text(string.format("Alt: %.1f", visual.moon.altitude))
+
+    -- Show current time
+    local time_str = string.format("%02d:%02d", current_date.hour, current_date.minute)
+    local text_width = screen.text_extents(time_str)
+    screen.move(128 - text_width - 2, 10)
+    screen.text(time_str)
   end
 end
 
 -- Draw trees on hills
 function visual.draw_trees()
   -- Layer 2.5: Trees on distant hills (between stars and hills)
-
-
   -- Draw each group of trees
   for _, group in ipairs(visual.trees) do
     -- Draw each tree in the group
@@ -328,9 +329,6 @@ end
 
 -- Draw the lake with glints
 function visual.draw_lake(t)
-  -- screen.level(1)
-  -- screen.rect(0, 32, 128, 64)
-  -- screen.fill()
   -- Layer 6: Lake surface with glints
   for _, g in ipairs(visual.glints) do
     -- No animation if wind is completely off
@@ -387,10 +385,23 @@ end
 function visual.draw_moon_reflection(t)
   -- Layer 8: Moon reflection on water surface
   if visual.moon.visible then
-    local reflection_y = 64 - (visual.moon.y - 30)  -- Invert height to position below water
+    -- Always draw the reflection regardless of altitude
+    local reflection_y = 64 - (visual.moon.y - 32)  -- Invert height to position below water
     if reflection_y > 32 and reflection_y < 64 then -- Only if below water surface
-      -- Draw moon reflection
-      screen.level(5)                               -- Reflection is dimmer
+      -- Calculate reflection intensity based on moon phase and altitude
+      local phase_brightness = 1.0
+      if visual.moon.phase < 0.1 or visual.moon.phase > 0.9 then
+        -- Near new moon - very dim reflection
+        phase_brightness = 0.3
+      elseif visual.moon.phase < 0.4 or visual.moon.phase > 0.6 then
+        -- Quarter moon - moderate reflection
+        phase_brightness = 0.7
+      end
+
+      -- Draw moon reflection with phase-dependent brightness
+      local base_level = 5
+      local reflection_level = math.floor(base_level * phase_brightness)
+      screen.level(reflection_level > 0 and reflection_level or 1) -- Ensure at least level 1
 
       if visual.wind.speed <= 0 then
         -- Completely still reflection
@@ -406,13 +417,21 @@ function visual.draw_moon_reflection(t)
         local sway_amount = visual.wind.speed * 2
         local stretch = 0.4 + (visual.wind.speed * 0.3)
 
-        -- Simple animation with fixed phase offset
-        local sway = math.sin(t * speed + 0.5) * sway_amount
-        local width = visual.moon.size / 2.5
-        local height = visual.moon.size * stretch / 4
+        -- Ripple effect on reflection - multiple ellipses
+        local num_ripples = 2 + math.floor(visual.wind.speed * 3)
+        for i = 1, num_ripples do
+          local ripple_phase = (t * speed + 0.3 * i) % (2 * math.pi)
+          local sway = math.sin(ripple_phase) * sway_amount * (i * 0.4)
+          local width = (visual.moon.size / 2.5) * (1 - (i - 1) * 0.15)
+          local height = (visual.moon.size * stretch / 4) * (1 - (i - 1) * 0.1)
 
-        screen.ellipse(visual.moon.x + sway, reflection_y, width, height)
-        screen.fill()
+          -- Fade ripples further from center
+          local fade = 1 - ((i - 1) / num_ripples) * 0.7
+          screen.level(math.floor(reflection_level * fade))
+
+          screen.ellipse(visual.moon.x + sway, reflection_y + (i - 1), width, height)
+          screen.fill()
+        end
       end
     end
   end

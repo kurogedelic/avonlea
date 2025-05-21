@@ -14,7 +14,7 @@ shooting_star.config = {
   brightness = 0,   -- Brightness (1-15)
   lifetime = 0,     -- How long it lasts (frames)
   current_life = 0, -- Current lifetime counter
-  chance = 0.003    -- Chance of appearing each frame (0.003 = rare)
+  chance = 0.01     -- Temporary increase for debugging
 }
 
 -- Initialize a new shooting star
@@ -22,21 +22,42 @@ function shooting_star.init()
   shooting_star.config.active = true
   shooting_star.config.current_life = 0
 
-  -- Set random position at the top-right area of the screen
-  shooting_star.config.x = math.random(70, 120) -- Right side of screen
-  shooting_star.config.y = math.random(0, 15)   -- Top of screen
+  -- Set starting position at the top-right area of the screen
+  shooting_star.config.x = math.random(80, 120)  -- Right edge of screen
+  shooting_star.config.y = math.random(2, 12)    -- Near top of screen
 
-  -- Set random direction (right-top to left-bottom)
-  local angle = math.rad(math.random(120, 150)) -- Angle for top-right to bottom-left
-  local speed = math.random(15, 25) / 10        -- Speed between 1.5-2.5 pixels per frame
+  -- Calculate ending point (always left-down diagonal)
+  local end_x = math.random(5, 30)     -- Left side of screen
+  local end_y = shooting_star.config.y + math.random(15, 25)  -- Always below starting point
+  end_y = math.min(end_y, 30)          -- Don't go below horizon
+  
+  -- Make sure the shooting star is always going down-left (proper diagonal)
+  if end_y <= shooting_star.config.y then
+    end_y = shooting_star.config.y + 10 -- Force downward trajectory
+  end
+  
+  -- Calculate direction vector to reach ending point
+  local dx = end_x - shooting_star.config.x
+  local dy = end_y - shooting_star.config.y
+  local dist = math.sqrt(dx * dx + dy * dy)
+  
+  -- Normalize and set speed
+  local speed = math.random(15, 25) / 10  -- Speed between 1.5-2.5 pixels per frame
+  shooting_star.config.dx = dx / dist * speed
+  shooting_star.config.dy = dy / dist * speed
 
-  shooting_star.config.dx = math.cos(angle) * speed
-  shooting_star.config.dy = math.sin(angle) * speed
+  -- Calculate lifetime based on distance and speed
+  local time_to_reach = dist / speed
+  shooting_star.config.lifetime = math.floor(time_to_reach * 0.95) -- End slightly before reaching end point
+
+  -- Debug info
+  print(string.format("New shooting star: Start(%.1f, %.1f) End(%.1f, %.1f) Direction(%.2f, %.2f)", 
+        shooting_star.config.x, shooting_star.config.y, end_x, end_y, 
+        shooting_star.config.dx, shooting_star.config.dy))
 
   -- Set random properties
   shooting_star.config.length = math.random(4, 10)
   shooting_star.config.brightness = math.random(8, 15)
-  shooting_star.config.lifetime = math.random(15, 30) -- Last for 15-30 frames
 end
 
 -- Draw the shooting star
@@ -74,8 +95,7 @@ function shooting_star.draw()
 
   -- Check if shooting star should be deactivated
   if shooting_star.config.current_life >= shooting_star.config.lifetime or
-      shooting_star.config.x < 0 or shooting_star.config.x > 128 or
-      shooting_star.config.y < 0 or shooting_star.config.y > 32 then
+     shooting_star.config.x < 5 or shooting_star.config.y > 35 then
     shooting_star.config.active = false
   end
 end

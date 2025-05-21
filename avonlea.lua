@@ -1,4 +1,4 @@
--- avonlea.lua
+
 --
 -- The Lake of Shining Waters at night
 -- The water gleams quietly beneath the starlight,
@@ -35,15 +35,15 @@ local function check_file_exists(file)
   end
 end
 
--- Location information near Campbell's Pond / Anne of Green Gables Museum
-local LATITUDE = 46.52426   -- Latitude (North)
-local LONGITUDE = -63.54112 -- Longitude (West)
-local ELEVATION = 2         -- Elevation (m)
-local VIEW_AZIMUTH = 0      -- View direction (0=North)
+-- Location information for Green Gables area
+local LATITUDE = 46.49300    -- Latitude (North)
+local LONGITUDE = -63.38729  -- Longitude (West)
+local ELEVATION = 4          -- Elevation (m)
+local VIEW_AZIMUTH = 180     -- View direction (180=South)
 local FOV = 120             -- Field of view (degrees)
 
 -- Moon drawing settings
-local MOON_SIZE = 8    -- Moon diameter (pixels) - reduced by 1/2
+local MOON_SIZE = 6    -- Moon diameter (pixels) - reduced size
 local current_date = { -- Initial date/time
   year = 2024,
   month = 5,
@@ -76,6 +76,10 @@ function set_current_time()
   -- Split time components
   local t = os.date("%Y-%m-%d %H:%M:%S", adjusted_s)
   local year, month, day, hour, minute, sec = string.match(t, "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)")
+  
+  -- Debug time info
+  print("Current system time: " .. t)
+  print(string.format("Time components: %s-%s-%s %s:%s:%s", year, month, day, hour, minute, sec))
 
   -- Update parameters
   params:set("year", tonumber(year))
@@ -103,8 +107,8 @@ function update_moon_data()
   -- Calculate moon phase
   moon.phase = moon_calc.calculate_moon_phase(jd)
 
-  -- Calculate moon position
-  local position = moon_calc.calculate_moon_position(jd, LATITUDE, LONGITUDE)
+  -- Use simplified position calculation for consistent visibility
+  local position = moon_calc.calculate_simplified_position(jd, current_date.month, current_date.hour)
   moon.azimuth = position.azimuth
   moon.altitude = position.altitude
 
@@ -115,12 +119,13 @@ function update_moon_data()
     VIEW_AZIMUTH,
     FOV,
     128, -- Screen width
-    64   -- Screen height
+    64,  -- Screen height
+    MOON_SIZE / 2 -- Pass radius
   )
 
   moon.x = screen_pos.x
   moon.y = screen_pos.y
-  moon.visible = screen_pos.visible and (moon.phase > 0.01 and moon.phase < 0.99) -- Don't display if near new moon
+  moon.visible = screen_pos.visible -- Always show if in view
 
   -- Generate moon shape data
   moon.shape_data = moon_calc.generate_moon_shape(moon.phase, MOON_SIZE)
@@ -132,22 +137,41 @@ function update_moon_data()
     current_date.day,
     current_date.hour,
     current_date.minute)
-  print("--- Moon update at " .. date_str .. " ---")
+  print("=== Moon update at " .. date_str .. " ===")
+  print(string.format("Location: Lat=%.5f, Long=%.5f, View=%d°", LATITUDE, LONGITUDE, VIEW_AZIMUTH))
   print(string.format("Julian Date: %.5f", jd))
   print(string.format("Moon phase: %.2f", moon.phase))
-  print(string.format("Moon position: Azimuth=%.2f, Altitude=%.2f", moon.azimuth, moon.altitude))
+  print(string.format("Moon position: Azimuth=%.2f°, Altitude=%.2f°", moon.azimuth, moon.altitude))
   print(string.format("Screen position: X=%.2f, Y=%.2f", moon.x, moon.y))
   print(string.format("Moon visible: %s", moon.visible and "YES" or "NO"))
 
   if not moon.visible then
     -- Explain why not visible
     if not screen_pos.visible then
-      print("Reason: Outside viewport")
+      if moon.altitude < 0 then
+        print("Reason: Moon is below horizon (altitude < 0)")
+      else
+        print("Reason: Outside viewport (azimuth difference too large)")
+        local rel_azimuth = (moon.azimuth - VIEW_AZIMUTH) % 360
+        if rel_azimuth > 180 then rel_azimuth = rel_azimuth - 360 end
+        print(string.format("Relative azimuth: %.2f° (FOV is %.1f°)", rel_azimuth, FOV))
+      end
     elseif moon.phase <= 0.01 or moon.phase >= 0.99 then
       print("Reason: Near new moon - too dark")
     end
+  else
+    -- Summarize visibility conditions
+    print("Visibility conditions:")
+    print(string.format("- Time: %s", date_str))
+    print(string.format("- Phase: %.2f (0=new, 0.5=full)", moon.phase))
+    print(string.format("- Altitude: %.1f° (negative=below horizon)", moon.altitude))
+    
+    local rel_azimuth = (moon.azimuth - VIEW_AZIMUTH) % 360
+    if rel_azimuth > 180 then rel_azimuth = rel_azimuth - 360 end
+    print(string.format("- Rel. Azimuth: %.1f° (should be between ±%.1f° to be in FOV)", 
+      rel_azimuth, FOV/2))
   end
-  print("---------------------------")
+  print("===========================")
 end
 
 function init()
@@ -267,7 +291,7 @@ function key(n, z)
     end
     print("=======================")
   elseif n == 3 and z == 1 then
-    -- K3 updates to current time
+    -- K3 refreshes current time
     set_current_time()
   end
 end
