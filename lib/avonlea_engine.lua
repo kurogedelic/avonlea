@@ -12,8 +12,7 @@ Avonlea.metadata = {
   description = "Ambient morphing engine with deep filter and spatial movement"
 }
 
--- Declare the engine
-engine.name = "Avonlea"
+-- Engine is declared in main script
 
 -- Parameter definitions
 function Avonlea.add_params()
