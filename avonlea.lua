@@ -8,7 +8,8 @@
 
 
 local util = require "util"
-engine.name = "Avonlea"
+-- 音響エンジンを使用しないバージョン
+-- engine.name = "None"
 
 
 -- coding guide:
@@ -16,11 +17,11 @@ engine.name = "Avonlea"
 
 -- Encoder assignments - easily changeable
 local WIND_ENCODER = 1         -- Wind speed control (default: E1)
-local GLINT_MORPH_ENCODER = 2  -- Glint morph control (default: E2)
+local DEPTH_MORPH_ENCODER = 2  -- Depth morph control (default: E2)
 local WEIGHT_MORPH_ENCODER = 3 -- Weight morph control (default: E3)
 
 -- Include modules
-local avonlea = include("lib/avonlea_engine")
+-- local avonlea = include("lib/avonlea_engine") -- 音響エンジンモジュールは使用しない
 local moon_calc = include("lib/moon_calculator")
 local visual = include("lib/avonlea_visual")
 
@@ -129,6 +130,9 @@ function update_moon_data()
 
   -- Generate moon shape data
   moon.shape_data = moon_calc.generate_moon_shape(moon.phase, MOON_SIZE)
+  
+  -- 月のデータをサウンドエンジンに送信しない
+  -- if avonlea then avonlea.update_moon_params(moon.phase, moon.altitude) end
 
   -- Display debug information
   local date_str = string.format("%04d-%02d-%02d %02d:%02d",
@@ -175,24 +179,24 @@ function update_moon_data()
 end
 
 function init()
-  -- Initialize audio engine
-  avonlea.add_params()
-  avonlea.init()
+  -- 音響エンジンの初期化は行わない
+  -- avonlea.add_params()
+  -- avonlea.init()
+  
+  -- 初期化時に月のデータをサウンドエンジンに送信するプリセット
 
-  -- Set default values for audio parameters
-  params:set("depthMorph", 0.4)
-  params:set("glintMorph", 0.3)
-  params:set("weightMorph", 0.4)
-  params:set("gain", 1.0)
+  -- オーディオパラメータは使用しない
+  -- params:set("depthMorph", 0.4)
+  -- params:set("glintMorph", 0.3)
+  -- params:set("weightMorph", 0.4)
+  -- params:set("gain", 1.0)
 
   -- Add wind parameter
   params:add_separator("Visual Parameters")
 
   params:add_control("wind_speed", "Wind Speed", controlspec.new(0.0, 1.0, 'lin', 0.01, 0.5, ""))
-  params:set_action("wind_speed", function(val)
-    -- Send the wind speed to the visual module
-    visual.set_wind_speed(val)
-  end)
+  -- 風速パラメータのアクションを設定（visualモジュールを渡す）
+  avonlea.set_wind_action(visual)
 
   -- Add date and time settings
   params:add_separator("Moon Settings")
@@ -234,6 +238,26 @@ function init()
 
   -- Initialize visual module
   visual.init(moon, params)
+  
+  -- エンジンコマンドの初期化は使用しない
+  -- clock.run(function()
+  --   -- エンジンの完全な初期化を待つ
+  --   clock.sleep(0.1)
+  --   
+  --   -- 月の初期化
+  --   avonlea.init_moon()
+  --   
+  --   -- 風のコマンドが準備できたら進める
+  --   if type(engine.wind) == "function" then
+  --     engine.wind(params:get("wind_speed"))
+  --     print("Wind parameters initialized with: " .. params:get("wind_speed"))
+  --   else
+  --     print("Warning: engine.wind function not available")
+  --   end
+  --   
+  --   -- 月のデータを最新の値で再送信
+  --   avonlea.update_moon_params(moon.phase, moon.altitude)
+  -- end)
 
   -- Set up redraw clock
   redraw_clock = clock.run(function()
@@ -267,10 +291,12 @@ function enc(n, d)
         print(string.format("Reed 1 phase: %.4f", visual.reeds[1].phase))
       end
     end
-  elseif n == GLINT_MORPH_ENCODER then
-    params:delta("glintMorph", d)
+  elseif n == DEPTH_MORPH_ENCODER then
+    -- 音響パラメータは無効化
+    -- params:delta("depthMorph", d)
   elseif n == WEIGHT_MORPH_ENCODER then
-    params:delta("weightMorph", d)
+    -- 音響パラメータは無効化
+    -- params:delta("weightMorph", d)
   end
 end
 

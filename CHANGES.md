@@ -1,5 +1,18 @@
-# Avonlea Changes - Visual Improvements
+# Avonlea Changes
 
+## Sound Engine Updates (2025-05-21)
+- Added moon phase-linked shimmer effect
+  - Moon phase now affects brightness and frequency of shimmer
+  - Fuller moon creates brighter, higher-frequency shimmer sounds
+- Added wind sound generation that responds to wind speed
+  - Wind parameter now affects both visual animation and audio
+  - Uses resonant filtered noise for realistic wind sounds
+- Changed encoder assignments for better usability
+  - E2 now controls filter depth instead of glint/shimmer
+  - Shimmer effect is now primarily controlled by moon phase
+- General audio refinements for better spatial feel
+
+## Visual Improvements (Previous update)
 This commit includes the following changes:
 
 ## Bug Fixes

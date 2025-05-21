@@ -1,4 +1,4 @@
-// Engine_Avonlea.sc
+// Engine_Avonlea.sc - Ultra-minimal version
 Engine_Avonlea : CroneEngine {
   var <synth;
 
@@ -7,60 +7,35 @@ Engine_Avonlea : CroneEngine {
   }
 
   alloc {
-    // SynthDef定義
+    // Minimal synth
     SynthDef(\avonlea, {
-      |depthMorph = 0.4, glintMorph = 0.3, weightMorph = 0.4, gain = 1.0|
-      var base, shimmer, drone, env;
-      var lfoDepth, lfoGlint, lfoWeight;
-      var depth, glint, weight;
-      var delayL, delayR, delayTimeL, delayTimeR;
-      var blend;
-
-      lfoDepth  = SinOsc.kr(0.003).range(-1, 1);
-      lfoGlint  = LFNoise1.kr(0.2).range(-1, 1);
-      lfoWeight = SinOsc.kr(0.01).range(-1, 1);
-
-      depth  = 3000 + (lfoDepth  * depthMorph * 2500);
-      glint  = 1.5   + (lfoGlint * glintMorph * 1.4);
-      weight = 0.3   + (lfoWeight * weightMorph * 0.2);
-
-      delayTimeL = SinOsc.kr(0.07).range(0.03, 0.08);
-      delayTimeR = SinOsc.kr(0.09).range(0.04, 0.09);
-
-      base = SinOsc.ar(100, 0, 0.3);
-
-      shimmer = SinOsc.ar(
-        5000 + LFNoise1.kr(0.1).range(-1000, 1000),
-        0,
-        EnvGen.kr(Env.perc(0.1, 1), Dust.kr(glint), 0.08)
-      );
-
-      blend = SinOsc.kr(0.003).range(0.3, 0.7);
-
-      drone = XFade2.ar(
-        LPF.ar(base + shimmer, depth),
-        HPF.ar(base + shimmer, 4000),
-        blend * 2 - 1
-      );
-
-      drone = CombL.ar(drone, 0.3, weight, 3) + drone;
-
-      delayL = DelayL.ar(drone, 0.1, delayTimeL);
-      delayR = DelayL.ar(drone, 0.1, delayTimeR);
-
-      Out.ar(0, [delayL, delayR] * gain);
+      arg out=0, amp=0.5, hz=440, moonPhase=0.5, moonAltitude=30, windSpeed=0.5;
+      var sig = SinOsc.ar(hz) * amp;
+      Out.ar(out, [sig, sig]);
     }).add;
 
-    // パラメータ制御コマンドを追加
-    this.addCommand("set", "sf", { |msg|
-      var key = msg[1].asSymbol;
-      var value = msg[2].asFloat;
-      synth.set(key, value);
-    });
-
-    // Synthを生成
     context.server.sync;
-    synth = Synth.new(\avonlea, target: context.server);
+    synth = Synth.new(\avonlea, [\out, context.out_b], context.xg);
+    
+    // Most basic command format
+    this.addCommand("amp", "f", { |msg|
+      synth.set(\amp, msg[1]);
+    });
+    
+    this.addCommand("hz", "f", { |msg|
+      synth.set(\hz, msg[1]);
+    });
+    
+    // Now add the moon command - same format as other working commands
+    this.addCommand("moon", "ff", { |msg|
+      synth.set(\moonPhase, msg[1]);
+      synth.set(\moonAltitude, msg[2]);
+    });
+    
+    // Now add the wind command - same format as other working commands
+    this.addCommand("wind", "f", { |msg|
+      synth.set(\windSpeed, msg[1]);
+    });
   }
 
   free {
