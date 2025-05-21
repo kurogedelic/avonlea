@@ -195,8 +195,12 @@ function init()
   params:add_separator("Visual Parameters")
 
   params:add_control("wind_speed", "Wind Speed", controlspec.new(0.0, 1.0, 'lin', 0.01, 0.5, ""))
-  -- 風速パラメータのアクションを設定（visualモジュールを渡す）
-  avonlea.set_wind_action(visual)
+  -- 風速パラメータのアクションを直接設定
+  params:set_action("wind_speed", function(val)
+    -- ビジュアルモジュールに風速を送信
+    visual.set_wind_speed(val)
+    print(string.format("Wind speed set to: %.2f", val))
+  end)
 
   -- Add date and time settings
   params:add_separator("Moon Settings")

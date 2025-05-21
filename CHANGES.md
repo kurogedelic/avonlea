@@ -1,34 +1,29 @@
 # Avonlea Changes
 
-## Sound Engine Updates (2025-05-21)
-- Added moon phase-linked shimmer effect
-  - Moon phase now affects brightness and frequency of shimmer
-  - Fuller moon creates brighter, higher-frequency shimmer sounds
-- Added wind sound generation that responds to wind speed
-  - Wind parameter now affects both visual animation and audio
-  - Uses resonant filtered noise for realistic wind sounds
-- Changed encoder assignments for better usability
-  - E2 now controls filter depth instead of glint/shimmer
-  - Shimmer effect is now primarily controlled by moon phase
-- General audio refinements for better spatial feel
+## Major Update (2025-05-21)
+- Temporarily separated visual and audio components
+  - Current version is visual-only while audio engine is being redeveloped
+  - Removed audio engine dependencies to ensure stable operation
+  - Fixed initialization issues with visual components
 
-## Visual Improvements (Previous update)
-This commit includes the following changes:
+## Development Plans
+- Developing improved audio engine separately with SuperCollider
+- Will reintegrate sound with better integration between visual and audio elements
+- Enhanced parameter mapping planned for future versions
 
-## Bug Fixes
-- Fixed `math.random()` usage in `avonlea_visual.lua` to ensure integer arguments instead of floating point values
-- Fixed the tree drawing function to prevent "screen event Q full!" errors
-
-## Visual Improvements
+## Previous Visual Improvements
+- Fixed `math.random()` usage in `avonlea_visual.lua` to ensure integer arguments
+- Fixed tree drawing function to prevent "screen event Q full!" errors
 - Implemented simpler tree rendering using vertical lines similar to reeds
 - Added more tree groups for a fuller forest appearance
 - Optimized visual elements for better performance
 - Trees now use a very dark but visible level (1) for better visibility
-- Updated README.md with comprehensive information about features
 
 ## Repository Update
 - Changed repository path to: github.com/kurogedelic/avonlea
 
 ## Next Steps
-- Refine moon display and visibility
-- Further optimize animation performance
+- Develop standalone SuperCollider sound engine
+- Create improved engine integration with Norns
+- Reintegrate audio and visual components
+- Further optimize performance

@@ -1,6 +1,6 @@
 # Avonlea
 
-A tranquil ambient visual scene for norns, inspired by the Lake of Shining Waters.
+A tranquil ambient visual scene for norns, inspired by the Lake of Shining Waters from "Anne of Green Gables".
 
 > "the Lake of Shining Waters was blue — blue — blue;  
 > not the changeful blue of spring, nor the pale azure of summer,  
@@ -8,38 +8,37 @@ A tranquil ambient visual scene for norns, inspired by the Lake of Shining Water
 > as if the water were past all modes and tenses of emotion  
 > and had settled down to a tranquillity unbroken by fickle dreams."
 
-Avonlea creates a peaceful ambient visual scene showing stars, distant trees, hills, and reeds swaying by the lake shore.
+**Current Status**: This version is visual-only. The sound engine is being developed separately and will be integrated in a future update.
 
-**Note**: This version is currently visual-only. Sound engine implementation is under development.
+---
+
+### Features
+
+- **Atmospheric Lake Scene**:
+  - Twinkling stars in the night sky with occasional shooting stars
+  - Distant trees on hillsides silhouetted against the night sky
+  - Lake surface with moonlight reflections
+  - Reeds swaying gently at the water's edge
+  
+- **Realistic Moon Display**:
+  - Accurate moon phase based on real date and time
+  - Proper positioning in the sky with altitude and azimuth
+  - Visual effects like brightness that change with moon phase
+  
+- **Weather Effects**:
+  - Wind speed parameter affecting reed movement and water ripples
+  - Visual animations that respond to environmental changes
 
 ---
 
 ### Controls
 
-#### Visual
+#### Visual Control
 - **E1** — Wind Speed: controls animation speed of reeds and water ripples
 
-#### Visual & Interaction
-- **K2** — Toggle moon info display and print debug info
-- **K3** — Update to current time
-
----
-
-### Features
-- Dynamic visual scene with animated elements:
-  - Twinkling stars in the night sky
-  - Occasional shooting stars
-  - Distant trees on hillsides
-  - Lake surface with glints reflecting moonlight
-  - Reeds swaying in the breeze
-- Realistic moon display with correct phase based on real-time date
-- Wind speed parameter affecting visual animation
-
-#### Planned Audio Features
-- Ambient sound engine with moon phase and wind speed integration
-  - Shimmer brightness/frequency responsive to moon phase (brighter at full moon)
-  - Wind sounds responding to wind speed parameter
-  - Spatial reverb and textural variations
+#### Interaction
+- **K2** — Toggle moon information display and debug info
+- **K3** — Update to current system time
 
 ---
 
@@ -50,6 +49,17 @@ Avonlea creates a peaceful ambient visual scene showing stars, distant trees, hi
 ```
 
 (in maiden's REPL)
+
+---
+
+### Development Roadmap
+
+- **Current**: Visual-only ambient scene
+- **In Progress**: Sound engine development using SuperCollider
+- **Planned**: Integration of visual and sound elements with:
+  - Moon phase affecting sound brightness and timbre
+  - Wind speed controlling both animations and sound textures
+  - Full ambient soundscape with generative elements
 
 ---
 
