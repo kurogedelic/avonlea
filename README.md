@@ -19,10 +19,13 @@ moves with the world.
 ## Controls
 
 - **E1**: Wind intensity
-- **E2**: Depth (moon phase)
-- **E3**: Surface glint (moon altitude)
+- **E2**: "the depths of the lake"
+- **E3**: Surface glint
 - **K2**: Cycle weather mode (Auto / Clear / Cloudy / Rain)
 - **K3**: Sync time & weather manually
+
+> note: auto mode is realtime.
+> 46.49300 -63.38729
 
 ---
 
