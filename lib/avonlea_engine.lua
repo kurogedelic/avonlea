@@ -86,7 +86,7 @@ function Avonlea.init()
   
   -- Set default parameters on engine startup
   clock.run(function()
-    clock.sleep(0.1) -- Wait for engine to fully load
+    clock.sleep(0.3) -- Wait longer for engine to fully load
     Avonlea.update_weather_adjusted_params()
     engine.gain(params:get("gain"))
     print("Engine initialized with weather-adjusted parameters")
@@ -107,11 +107,15 @@ function Avonlea.update_weather_adjusted_params()
   local adjusted_glint = base_glint * modifiers.glint_factor
   local adjusted_wind = math.min(1.0, base_wind + modifiers.wind_offset)
   
-  -- Send to engine
+  -- Send to engine (with error protection)
   engine.depth(adjusted_depth)
   engine.glint(adjusted_glint)
   engine.wind(adjusted_wind)
-  engine.atmosphere(modifiers.atmosphere)
+  
+  -- Check if atmosphere command exists before calling
+  pcall(function()
+    engine.atmosphere(modifiers.atmosphere)
+  end)
   
   -- Debug output
   if modifiers.depth_factor ~= 1.0 or modifiers.glint_factor ~= 1.0 or modifiers.wind_offset ~= 0.0 then

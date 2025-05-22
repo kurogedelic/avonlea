@@ -255,7 +255,7 @@ function init()
   -- Initialize engine commands
   clock.run(function()
     -- Wait for complete engine initialization
-    clock.sleep(0.2)
+    clock.sleep(0.5) -- Increased delay for weather system
 
     -- Initialize wind parameter
     engine.wind(params:get("wind"))
@@ -265,6 +265,9 @@ function init()
     engine.depth(params:get("depth"))
     engine.glint(params:get("glint"))
     engine.gain(params:get("gain"))
+    
+    -- Now update weather (after engine is ready)
+    avonlea.update_weather()
   end)
 
   -- Set up redraw clock

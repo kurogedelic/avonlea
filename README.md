@@ -40,7 +40,9 @@ moves with the world.
 
 ## Installation
 
+```
 ;install https://github.com/kurogedelic/avonlea
+```
 
 ---
 
