@@ -22,37 +22,27 @@ function shooting_star.init()
   shooting_star.config.active = true
   shooting_star.config.current_life = 0
 
-  -- Set starting position at the top-right area of the screen
-  shooting_star.config.x = math.random(80, 120)  -- Right edge of screen
-  shooting_star.config.y = math.random(2, 12)    -- Near top of screen
+  -- Set starting position at the top area of the screen
+  shooting_star.config.x = math.random(30, 70)   -- Center-left area
+  shooting_star.config.y = math.random(2, 8)     -- Near top of screen
 
-  -- Calculate ending point (always left-down diagonal)
-  local end_x = math.random(5, 30)     -- Left side of screen
-  local end_y = shooting_star.config.y + math.random(15, 25)  -- Always below starting point
-  end_y = math.min(end_y, 30)          -- Don't go below horizon
-  
-  -- Make sure the shooting star is always going down-left (proper diagonal)
-  if end_y <= shooting_star.config.y then
-    end_y = shooting_star.config.y + 10 -- Force downward trajectory
-  end
-  
-  -- Calculate direction vector to reach ending point
-  local dx = end_x - shooting_star.config.x
-  local dy = end_y - shooting_star.config.y
-  local dist = math.sqrt(dx * dx + dy * dy)
-  
-  -- Normalize and set speed
+  -- Calculate direction for 120 degrees (southwest direction)
+  -- 120 degrees = southwest, pointing down and left
+  local angle_rad = math.rad(120)  -- Convert 120 degrees to radians
   local speed = math.random(15, 25) / 10  -- Speed between 1.5-2.5 pixels per frame
-  shooting_star.config.dx = dx / dist * speed
-  shooting_star.config.dy = dy / dist * speed
+  
+  shooting_star.config.dx = math.cos(angle_rad) * speed  -- X component (negative = leftward)
+  shooting_star.config.dy = math.sin(angle_rad) * speed  -- Y component (positive = downward)
 
-  -- Calculate lifetime based on distance and speed
-  local time_to_reach = dist / speed
-  shooting_star.config.lifetime = math.floor(time_to_reach * 0.95) -- End slightly before reaching end point
+  -- Calculate lifetime based on screen bounds
+  -- Estimate when it will exit the screen
+  local frames_to_left_edge = (shooting_star.config.x - 0) / math.abs(shooting_star.config.dx)
+  local frames_to_bottom = (30 - shooting_star.config.y) / math.abs(shooting_star.config.dy)
+  shooting_star.config.lifetime = math.floor(math.min(frames_to_left_edge, frames_to_bottom) * 0.9)
 
   -- Debug info
-  print(string.format("New shooting star: Start(%.1f, %.1f) End(%.1f, %.1f) Direction(%.2f, %.2f)", 
-        shooting_star.config.x, shooting_star.config.y, end_x, end_y, 
+  print(string.format("New shooting star: Start(%.1f, %.1f) Angle=120° Direction(%.2f, %.2f)", 
+        shooting_star.config.x, shooting_star.config.y, 
         shooting_star.config.dx, shooting_star.config.dy))
 
   -- Set random properties

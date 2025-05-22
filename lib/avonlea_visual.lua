@@ -27,8 +27,62 @@ visual.wind = {
   reflection_speed = 0.2 -- Moon reflection animation base speed
 }
 
+-- Weather state
+visual.weather = {
+  current_state = "clear",  -- Current weather state
+  fade_alpha = 1.0,          -- For transition effects
+  rain_particles = {},       -- Rain particles
+  snow_particles = {}        -- Snow particles
+}
+
 -- Include the shooting star module
 local shooting_star = include("lib/shooting_star")
+
+-- Update and draw rain
+function visual.update_and_draw_rain(t)
+  for _, rain in ipairs(visual.weather.rain_particles) do
+    -- Update position
+    rain.y = rain.y + rain.speed
+    rain.x = rain.x + visual.wind.speed * 0.5 -- Wind effect
+    
+    -- Reset if off screen
+    if rain.y > 70 then
+      rain.y = math.random(-20, -5)
+      rain.x = math.random(0, 128)
+    end
+    if rain.x > 128 then rain.x = 0 end
+    if rain.x < 0 then rain.x = 128 end
+    
+    -- Draw rain drop
+    screen.level(2 + math.random(0, 2))
+    screen.move(rain.x, rain.y)
+    screen.line(rain.x + 1, rain.y + rain.length)
+    screen.stroke()
+  end
+end
+
+-- Update and draw snow
+function visual.update_and_draw_snow(t)
+  for _, snow in ipairs(visual.weather.snow_particles) do
+    -- Update position
+    snow.y = snow.y + snow.speed
+    snow.x = snow.x + snow.drift + visual.wind.speed * 0.3 -- Wind + drift
+    
+    -- Reset if off screen
+    if snow.y > 70 then
+      snow.y = math.random(-20, -5)
+      snow.x = math.random(0, 128)
+    end
+    if snow.x > 128 then snow.x = 0 end
+    if snow.x < 0 then snow.x = 128 end
+    
+    -- Draw snowflake
+    local alpha = 0.7 + 0.3 * math.sin(t + snow.x * 0.1)
+    screen.level(math.floor(alpha * 4))
+    screen.circle(snow.x, snow.y, snow.size)
+    screen.fill()
+  end
+end
 
 -- Initialize with required dependencies
 function visual.init(moon_data, params)
@@ -143,11 +197,11 @@ function visual.init(moon_data, params)
   screen.aa(0)
 
   -- Initialize with default params
-  if params:get("wind_speed") ~= 0 then
-    visual.wind.speed = params:get("wind_speed")
+  if params:get("wind") ~= nil then
+    visual.wind.speed = params:get("wind")
   else
-    params:set("wind_speed", 0)
-    visual.wind.speed = 0
+    params:set("wind", 0.3)
+    visual.wind.speed = 0.3
   end
 
   -- Store initial time for continuous animation
@@ -163,14 +217,93 @@ function visual.set_wind_speed(speed)
   visual.wind.speed = speed
 end
 
+-- Set weather state
+function visual.set_weather_state(state)
+  if visual.weather.current_state ~= state then
+    if visual.DEBUG then
+      print(string.format("Weather changing: %s -> %s", visual.weather.current_state, state))
+    end
+    visual.weather.current_state = state
+    
+    -- Initialize particles for new weather state
+    if state == "rainy" then
+      visual.init_rain_particles()
+    elseif state == "snowy" then
+      visual.init_snow_particles()
+    end
+  end
+end
+
+-- Initialize rain particles
+function visual.init_rain_particles()
+  visual.weather.rain_particles = {}
+  for i = 1, 20 do
+    table.insert(visual.weather.rain_particles, {
+      x = math.random(0, 128),
+      y = math.random(-20, 64),
+      speed = 10 + math.random() * 3,  -- Faster: 3-6
+      length = math.random() * 10  -- Longer: 5-9
+    })
+  end
+end
+
+-- Initialize snow particles
+function visual.init_snow_particles()
+  visual.weather.snow_particles = {}
+  for i = 1, 30 do
+    table.insert(visual.weather.snow_particles, {
+      x = math.random(0, 128),
+      y = math.random(-20, 64),
+      speed = 0.5 + math.random() * 0.8,
+      drift = math.random() * 0.5 - 0.25,
+      size = 0.5 + math.random() * 0.5  -- Smaller: 0.5-1.0
+    })
+  end
+end
+
+-- Add functions for other parameters to match engine interface
+function visual.set_depth(depth)
+  if visual.DEBUG then
+    print(string.format("Depth set to: %.2f", depth))
+  end
+  -- Implement any visual changes based on depth parameter
+end
+
+function visual.set_glint(glint)
+  if visual.DEBUG then
+    print(string.format("Glint set to: %.2f", glint))
+  end
+  -- Implement any visual changes based on glint parameter
+end
+
 -- Draw the stars
 function visual.draw_stars(t)
+  -- Adjust star visibility based on weather
+  local weather_factor = 1.0
+  local star_count_factor = 1.0
+  
+  if visual.weather.current_state == "cloudy" then
+    weather_factor = 0.3        -- Dimmer stars
+    star_count_factor = 0.6      -- Fewer visible stars
+  elseif visual.weather.current_state == "rainy" then
+    weather_factor = 0.1         -- Very dim stars
+    star_count_factor = 0.3      -- Very few visible stars
+  elseif visual.weather.current_state == "snowy" then
+    weather_factor = 0.2         -- Dim stars
+    star_count_factor = 0.4      -- Few visible stars
+  end
+  
   -- Layer 1: Stars
-  for _, s in ipairs(visual.stars) do
+  for i, s in ipairs(visual.stars) do
+    -- Skip some stars based on weather
+    if (i / #visual.stars) > star_count_factor then
+      goto continue
+    end
+    
     -- Fixed base animation, no wind effect for stars
     local base_speed = 0.1
     local alpha = 0.5 + 0.5 * math.sin((t * base_speed) + (s.phase * math.pi * 2))
-    local level = math.floor(alpha * 5.0) -- subtle stars
+    local level = math.floor(alpha * 5.0 * weather_factor) -- Apply weather dimming
 
     if level > 0 then
       screen.level(level)
@@ -179,6 +312,8 @@ function visual.draw_stars(t)
       screen.rect(x, math.floor(s.y), 1, 0) -- Proper rect size for a 1x1 pixel
       screen.stroke()
     end
+    
+    ::continue::
   end
 end
 
@@ -202,6 +337,19 @@ function visual.draw_moon(t)
     -- Moon just below horizon (still partially visible due to atmospheric refraction)
     altitude_brightness = 0.5 * ((visual.moon.altitude + 5) / 5)
   end
+  
+  -- Weather effects on moon visibility
+  local weather_brightness = 1.0
+  if visual.weather.current_state == "cloudy" then
+    weather_brightness = 0.4
+  elseif visual.weather.current_state == "rainy" then
+    weather_brightness = 0.1
+  elseif visual.weather.current_state == "snowy" then
+    weather_brightness = 0.3
+  end
+  
+  -- Combine altitude and weather effects
+  local total_brightness = altitude_brightness * weather_brightness
 
   -- Select drawing method based on moon phase
   local phase = visual.moon.phase -- range 0-1
@@ -209,13 +357,13 @@ function visual.draw_moon(t)
   -- Check for new moon - show very faint outline
   if phase < 0.05 or phase > 0.95 then
     -- New moon - still draw a very faint outline
-    local level = math.max(1, math.floor(1 * altitude_brightness))
+    local level = math.max(1, math.floor(1 * total_brightness))
     screen.level(level)
     screen.circle(x, y, radius)
     screen.stroke()
   elseif phase > 0.45 and phase < 0.55 then
     -- Near full moon - simple bright circle
-    local level = math.max(1, math.floor(15 * altitude_brightness))
+    local level = math.max(1, math.floor(15 * total_brightness))
     screen.level(level)
     screen.circle(x, y, radius)
     screen.fill()
@@ -235,7 +383,7 @@ function visual.draw_moon(t)
     local curve = math.sin(norm_phase * math.pi / 2) * radius * 1.6
 
     -- Draw moon outline (circle)
-    local level = math.max(1, math.floor(15 * altitude_brightness))
+    local level = math.max(1, math.floor(15 * total_brightness))
     screen.level(level)
     screen.circle(x, y, radius)
     screen.fill()
@@ -261,8 +409,8 @@ function visual.draw_moon(t)
     screen.move(2, 26)
     screen.text(string.format("Alt: %.1f", visual.moon.altitude))
 
-    -- Show current time
-    local time_str = string.format("%02d:%02d", current_date.hour, current_date.minute)
+    -- Show current time (use os.date instead of current_date)
+    local time_str = os.date("%H:%M")
     local text_width = screen.text_extents(time_str)
     screen.move(128 - text_width - 2, 10)
     screen.text(time_str)
@@ -280,19 +428,31 @@ function visual.draw_trees()
       local base_x = tree.x
       local base_y = tree.y -- Hill level, adjust as needed
 
+      -- Calculate wind sway for trees (much less than reeds)
+      local sway = 0
+      if visual.wind.speed > 0 then
+        -- Trees sway less than reeds due to distance and size
+        local tree_wind_factor = 0.3 * visual.wind.speed -- Much less movement than reeds
+        local tree_phase = (tree.x + tree.y) * 0.01 -- Unique phase based on position
+        local current_time = util.time() - visual.start_time
+        local tree_speed = 0.2 * visual.wind.speed -- Slower movement
+        
+        sway = math.sin((current_time * tree_speed) + (tree_phase * math.pi * 2)) * tree_wind_factor
+      end
+
       -- Draw very simple trees, just like reeds but shorter
       if tree.type == 1 then
-        -- Straight tree
+        -- Straight tree with wind sway
         screen.level(2)
         screen.move(base_x, base_y)
-        screen.line(base_x, base_y - tree.height)
+        screen.line(base_x + sway, base_y - tree.height)
         screen.stroke()
       else
-        -- Slightly angled tree
+        -- Slightly angled tree with wind sway
         screen.level(1)
         local angle = tree.width * 0.3 -- Small angle
         screen.move(base_x, base_y)
-        screen.line(base_x + angle, base_y - tree.height)
+        screen.line(base_x + angle + sway, base_y - tree.height)
         screen.stroke()
       end
     end
@@ -329,11 +489,32 @@ end
 
 -- Draw the lake with glints
 function visual.draw_lake(t)
+  -- Calculate weather factor for glints (same as stars)
+  local weather_factor = 1.0
+  local glint_count_factor = 1.0
+  
+  if visual.weather.current_state == "cloudy" then
+    weather_factor = 0.4        -- Dimmer glints
+    glint_count_factor = 0.7     -- Fewer visible glints
+  elseif visual.weather.current_state == "rainy" then
+    weather_factor = 0.6         -- Moderate glints (rain creates ripples)
+    glint_count_factor = 0.8     -- More glints due to rain ripples
+  elseif visual.weather.current_state == "snowy" then
+    weather_factor = 0.6         -- Same as rainy
+    glint_count_factor = 0.8     -- Same as rainy
+  end
+  
   -- Layer 6: Lake surface with glints
-  for _, g in ipairs(visual.glints) do
+  for i, g in ipairs(visual.glints) do
+    -- Skip some glints based on weather
+    if (i / #visual.glints) > glint_count_factor then
+      goto continue
+    end
+    
     -- No animation if wind is completely off
     if visual.wind.speed <= 0 then
-      screen.level(2) -- Minimal static brightness
+      local base_level = 2 * weather_factor
+      screen.level(math.max(1, math.floor(base_level)))
       screen.move(g.x, g.y + 0.5)
       screen.line(g.x + g.len, g.y + 0.5)
       screen.stroke()
@@ -341,17 +522,21 @@ function visual.draw_lake(t)
       -- Simple animation that scales with wind, using t directly + fixed offset
       local base_speed = 0.2 -- Fixed base speed
       local speed = base_speed * visual.wind.speed
-      local brightness = 3 + (visual.wind.speed * 4)
+      local brightness = (3 + (visual.wind.speed * 4)) * weather_factor -- Apply weather factor
 
       -- Use time and fixed offset rather than random phase
       local alpha = 0.5 + 0.5 * math.sin((t * speed) + (g.phase * math.pi * 2))
       local level = math.floor(alpha * brightness)
 
-      screen.level(level)
-      screen.move(g.x, g.y + 0.5)
-      screen.line(g.x + g.len, g.y + 0.5)
-      screen.stroke()
+      if level > 0 then
+        screen.level(level)
+        screen.move(g.x, g.y + 0.5)
+        screen.line(g.x + g.len, g.y + 0.5)
+        screen.stroke()
+      end
     end
+    
+    ::continue::
   end
 end
 
@@ -397,10 +582,23 @@ function visual.draw_moon_reflection(t)
         -- Quarter moon - moderate reflection
         phase_brightness = 0.7
       end
+      
+      -- Apply weather effects to moon reflection
+      local weather_reflection_factor = 1.0
+      if visual.weather.current_state == "cloudy" then
+        weather_reflection_factor = 0.4
+      elseif visual.weather.current_state == "rainy" then
+        weather_reflection_factor = 0.7  -- Rain creates more ripples, some reflection visible
+      elseif visual.weather.current_state == "snowy" then
+        weather_reflection_factor = 0.2
+      end
+      
+      -- Combine phase and weather effects
+      local total_reflection_brightness = phase_brightness * weather_reflection_factor
 
       -- Draw moon reflection with phase-dependent brightness
       local base_level = 5
-      local reflection_level = math.floor(base_level * phase_brightness)
+      local reflection_level = math.floor(base_level * total_reflection_brightness)
       screen.level(reflection_level > 0 and reflection_level or 1) -- Ensure at least level 1
 
       if visual.wind.speed <= 0 then
@@ -450,8 +648,13 @@ function visual.redraw()
 
   -- Draw all elements in layer order
   visual.draw_stars(t)           -- Layer 1: Stars
-  shooting_star.update()         -- Check for shooting star generation
-  shooting_star.draw()           -- Draw shooting star if active
+  
+  -- Shooting stars only appear in clear weather
+  if visual.weather.current_state == "clear" then
+    shooting_star.update()         -- Check for shooting star generation
+    shooting_star.draw()           -- Draw shooting star if active
+  end
+  
   visual.draw_moon(t)            -- Layer 2: Moon
 
   visual.draw_hills()            -- Layers 3-5: Hills and waterline
@@ -459,6 +662,13 @@ function visual.redraw()
   visual.draw_lake(t)            -- Layer 6: Lake surface
   visual.draw_reeds(t)           -- Layer 7: Reeds
   visual.draw_moon_reflection(t) -- Layer 8: Moon reflection
+  
+  -- Draw weather particles (front layer)
+  if visual.weather.current_state == "rainy" then
+    visual.update_and_draw_rain(t)
+  elseif visual.weather.current_state == "snowy" then
+    visual.update_and_draw_snow(t)
+  end
 
   screen.update()
 end
