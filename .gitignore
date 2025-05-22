@@ -1,1 +1,141 @@
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# macOS Thumbnails
+._*
+
+# macOS Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# norns specific
+# Dust folder (if accidentally copied)
+dust/
+
+# norns data files
+data/
+*.data
+*.pset
+*.pmap
+
+# Audio files (if any test recordings)
+*.wav
+*.aif
+*.aiff
+*.flac
+*.mp3
+*.ogg
+
+# SuperCollider specific
+*.scsyndef
+*.scd.bak
+
+# Lua bytecode
+*.luac
+
+# Log files
+*.log
+logs/
+
+# Editor specific
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# OS generated files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Development/testing
+test/
+tests/
+debug/
+*.test
+
+# Documentation build
+docs/_build/
+
+# Node.js (if using any build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Python (if using any development tools)
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Archive files
+*.zip
+*.tar.gz
+*.rar
+*.7z

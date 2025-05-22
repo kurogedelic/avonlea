@@ -62,6 +62,7 @@ local moon = {
 
 -- Control flag to prevent multiple moon updates during preset changes
 local updating_preset = false
+local silent_update = false -- Flag for silent updates (no screen display)
 
 -- Weather state display
 local weather_state_display = {
@@ -72,7 +73,9 @@ local weather_state_display = {
 }
 
 -- Get and set current time
-function set_current_time()
+function set_current_time(silent)
+  silent = silent or false
+  silent_update = silent
   -- Get current time using standard Lua functions
   local current_timestamp = os.time()
   
@@ -156,6 +159,9 @@ function update_moon_data()
   -- Map moon altitude to spatial parameter
   local moon_glint = util.linlin(0, 90, constants.MOON.GLINT_MIN, constants.MOON.GLINT_MAX, math.max(0, moon.altitude))
   params:set("glint", moon_glint)
+  
+  -- Reset silent update flag
+  silent_update = false
 
   -- Display debug information
   local date_str = string.format("%04d-%02d-%02d %02d:%02d",
@@ -308,21 +314,27 @@ function enc(n, d)
   if n == ENCODERS.WIND then
     params:delta("wind", d * AUDIO.ENCODER_SENSITIVITY)
     print(string.format("E1 Wind: %.3f", params:get("wind")))
-    -- Reset parameter display timer
-    show_params_time = util.time()
-    show_params = true
+    -- Reset parameter display timer (only for manual encoder changes)
+    if not silent_update then
+      show_params_time = util.time()
+      show_params = true
+    end
   elseif n == ENCODERS.DEPTH then
     params:delta("depth", d * AUDIO.ENCODER_SENSITIVITY)
     print(string.format("E2 Depth: %.3f", params:get("depth")))
-    -- Reset parameter display timer
-    show_params_time = util.time()
-    show_params = true
+    -- Reset parameter display timer (only for manual encoder changes)
+    if not silent_update then
+      show_params_time = util.time()
+      show_params = true
+    end
   elseif n == ENCODERS.GLINT then
     params:delta("glint", d * AUDIO.ENCODER_SENSITIVITY)
     print(string.format("E3 Glint: %.3f", params:get("glint")))
-    -- Reset parameter display timer
-    show_params_time = util.time()
-    show_params = true
+    -- Reset parameter display timer (only for manual encoder changes)
+    if not silent_update then
+      show_params_time = util.time()
+      show_params = true
+    end
   end
 end
 
@@ -342,12 +354,12 @@ function key(n, z)
     weather_state_display.show_time = util.time()
     
   elseif n == 3 and z == 1 then
-    -- K3 refreshes current time and weather
-    set_current_time()
+    -- K3 refreshes current time and weather (silent update)
+    set_current_time(true) -- Pass true for silent update
     weather.force_update()
     -- Update sound when real weather changes
     avonlea.update_weather()
-    print("Time and weather updated")
+    -- Don't show weather state display for manual refresh
   end
 end
 
