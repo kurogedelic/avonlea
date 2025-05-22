@@ -11,15 +11,10 @@
 -- parameters
 local show_params = false
 local show_params_time = 0
-local show_params_duration = 1.0 -- Display duration (seconds)
 
 local util = require "util"
+local constants = include("lib/constants")
 engine.name = "Avonlea" -- engine
-
--- Encoder assignments - easily changeable
-local WIND_ENCODER = 1  -- Wind control (default: E1)
-local DEPTH_ENCODER = 2 -- Depth control (default: E2)
-local GLINT_ENCODER = 3 -- Glint control (default: E3)
 
 -- Include modules
 local avonlea = include("lib/avonlea_engine") -- Sound engine
@@ -38,15 +33,11 @@ local function check_file_exists(file)
   end
 end
 
--- Location information for Green Gables area
-local LATITUDE = 46.49300   -- Latitude (North)
-local LONGITUDE = -63.38729 -- Longitude (West)
-local ELEVATION = 4         -- Elevation (m)
-local VIEW_AZIMUTH = 180    -- View direction (180=South)
-local FOV = 120             -- Field of view (degrees)
-
--- Moon drawing settings
-local MOON_SIZE = 6    -- Moon diameter (pixels) - reduced size
+-- Get constants
+local LOCATION = constants.LOCATION
+local UI = constants.UI
+local ENCODERS = constants.ENCODERS
+local AUDIO = constants.AUDIO
 local current_date = { -- Initial date/time
   year = 2024,
   month = 5,
@@ -54,7 +45,7 @@ local current_date = { -- Initial date/time
   hour = 22,
   minute = 0,
   second = 0,
-  time_zone = -3 -- ADT (Atlantic Daylight Time)
+  time_zone = LOCATION.TIMEZONE -- ADT (Atlantic Daylight Time)
 }
 
 -- Moon information
@@ -66,7 +57,7 @@ local moon = {
   y = 0,            -- Y coordinate on screen
   visible = false,  -- Visible on screen
   shape_data = nil, -- Moon shape data
-  size = MOON_SIZE  -- Moon size (for visual module)
+  size = UI.MOON_SIZE  -- Moon size (for visual module)
 }
 
 -- Control flag to prevent multiple moon updates during preset changes
@@ -77,7 +68,7 @@ local weather_state_display = {
   visible = false,
   text = "",
   show_time = 0,
-  duration = 1.0  -- 1 second display
+  duration = UI.WEATHER_DISPLAY_TIME
 }
 
 -- Get and set current time
@@ -85,7 +76,7 @@ function set_current_time()
   -- Get current time using standard Lua functions
   local current_timestamp = os.time()
   
-  -- Apply timezone offset (ADT = UTC-3)
+  -- Apply timezone offset
   local offset = current_date.time_zone * 3600
   local adjusted_timestamp = current_timestamp + offset
   
@@ -143,11 +134,11 @@ function update_moon_data()
   local screen_pos = moon_calc.calculate_screen_position(
     moon.azimuth,
     moon.altitude,
-    VIEW_AZIMUTH,
-    FOV,
-    128,          -- Screen width
-    64,           -- Screen height
-    MOON_SIZE / 2 -- Pass radius
+    LOCATION.VIEW_AZIMUTH,
+    LOCATION.FOV,
+    UI.SCREEN_WIDTH,
+    UI.SCREEN_HEIGHT,
+    UI.MOON_SIZE / 2 -- Pass radius
   )
 
   moon.x = screen_pos.x
@@ -155,15 +146,15 @@ function update_moon_data()
   moon.visible = screen_pos.visible -- Always show if in view
 
   -- Generate moon shape data
-  moon.shape_data = moon_calc.generate_moon_shape(moon.phase, MOON_SIZE)
+  moon.shape_data = moon_calc.generate_moon_shape(moon.phase, UI.MOON_SIZE)
 
   -- Automatically map moon data to sound parameters (always enabled)
-  -- Map moon data to depth parameter (range 0.3-0.8)
-  local moon_depth = util.linlin(0, 1, 0.3, 0.8, moon.phase)
+  -- Map moon data to depth parameter
+  local moon_depth = util.linlin(0, 1, constants.MOON.DEPTH_MIN, constants.MOON.DEPTH_MAX, moon.phase)
   params:set("depth", moon_depth)
 
-  -- Map moon altitude to spatial parameter (range 0.2-0.8)
-  local moon_glint = util.linlin(0, 90, 0.2, 0.8, math.max(0, moon.altitude))
+  -- Map moon altitude to spatial parameter
+  local moon_glint = util.linlin(0, 90, constants.MOON.GLINT_MIN, constants.MOON.GLINT_MAX, math.max(0, moon.altitude))
   params:set("glint", moon_glint)
 
   -- Display debug information
@@ -174,7 +165,7 @@ function update_moon_data()
     current_date.hour,
     current_date.minute)
   print("=== Moon update at " .. date_str .. " ===")
-  print(string.format("Location: Lat=%.5f, Long=%.5f, View=%d°", LATITUDE, LONGITUDE, VIEW_AZIMUTH))
+  print(string.format("Location: Lat=%.5f, Long=%.5f, View=%d°", LOCATION.LATITUDE, LOCATION.LONGITUDE, LOCATION.VIEW_AZIMUTH))
   print(string.format("Julian Date: %.5f", jd))
   print(string.format("Moon phase: %.2f", moon.phase))
   print(string.format("Moon position: Azimuth=%.2f°, Altitude=%.2f°", moon.azimuth, moon.altitude))
@@ -182,8 +173,8 @@ function update_moon_data()
   print(string.format("Moon visible: %s", moon.visible and "YES" or "NO"))
 
   -- Display moon parameter mapping information
-  local moon_depth = util.linlin(0, 1, 0.3, 0.8, moon.phase)
-  local moon_glint = util.linlin(0, 90, 0.2, 0.8, math.max(0, moon.altitude))
+  local moon_depth = util.linlin(0, 1, constants.MOON.DEPTH_MIN, constants.MOON.DEPTH_MAX, moon.phase)
+  local moon_glint = util.linlin(0, 90, constants.MOON.GLINT_MIN, constants.MOON.GLINT_MAX, math.max(0, moon.altitude))
   print(string.format("Mapped to synth params - Depth: %.2f, Glint: %.2f", moon_depth, moon_glint))
 end
 
@@ -255,7 +246,7 @@ function init()
   -- Initialize engine commands
   clock.run(function()
     -- Wait for complete engine initialization
-    clock.sleep(0.5) -- Increased delay for weather system
+    clock.sleep(constants.SYSTEM.ENGINE_INIT_DELAY)
 
     -- Initialize wind parameter
     engine.wind(params:get("wind"))
@@ -273,7 +264,7 @@ function init()
   -- Set up redraw clock
   redraw_clock = clock.run(function()
     while true do
-      clock.sleep(1 / 15)
+      clock.sleep(1 / UI.REDRAW_FPS)
       redraw()
     end
   end)
@@ -281,7 +272,7 @@ function init()
   -- Set up weather update clock (check every 5 minutes)
   weather_clock = clock.run(function()
     while true do
-      clock.sleep(300) -- 5 minutes
+      clock.sleep(constants.WEATHER.AUTO_UPDATE_INTERVAL)
       local old_state = weather.get_effective_state()
       weather.update()
       local new_state = weather.get_effective_state()
@@ -314,20 +305,20 @@ end
 -- Encoder control update
 function enc(n, d)
   -- Map encoders to parameters using the assignment variables
-  if n == WIND_ENCODER then
-    params:delta("wind", d * 0.2)
+  if n == ENCODERS.WIND then
+    params:delta("wind", d * AUDIO.ENCODER_SENSITIVITY)
     print(string.format("E1 Wind: %.3f", params:get("wind")))
     -- Reset parameter display timer
     show_params_time = util.time()
     show_params = true
-  elseif n == DEPTH_ENCODER then
-    params:delta("depth", d * 0.2)
+  elseif n == ENCODERS.DEPTH then
+    params:delta("depth", d * AUDIO.ENCODER_SENSITIVITY)
     print(string.format("E2 Depth: %.3f", params:get("depth")))
     -- Reset parameter display timer
     show_params_time = util.time()
     show_params = true
-  elseif n == GLINT_ENCODER then
-    params:delta("glint", d * 0.2)
+  elseif n == ENCODERS.GLINT then
+    params:delta("glint", d * AUDIO.ENCODER_SENSITIVITY)
     print(string.format("E3 Glint: %.3f", params:get("glint")))
     -- Reset parameter display timer
     show_params_time = util.time()
@@ -372,12 +363,12 @@ function redraw()
   local current_time = util.time()
 
   -- Check parameter display end time
-  if show_params and current_time - show_params_time > show_params_duration then
+  if show_params and current_time - show_params_time > UI.PARAM_DISPLAY_TIME then
     show_params = false
   end
 
   if show_params then
-    screen.level(15)
+    screen.level(UI.MAX_SCREEN_LEVEL)
     screen.move(5, 10)
     screen.text(string.format("D:%.1f G:%.1f W:%.1f",
       params:get("depth") * 10,
@@ -391,9 +382,9 @@ function redraw()
     if current_time - weather_state_display.show_time > weather_state_display.duration then
       weather_state_display.visible = false
     else
-      screen.level(15)
+      screen.level(UI.MAX_SCREEN_LEVEL)
       local text_width = screen.text_extents(weather_state_display.text)
-      screen.move(128 - text_width - 5, 10)  -- Right aligned with margin
+      screen.move(UI.SCREEN_WIDTH - text_width - 5, 10)  -- Right aligned with margin
       screen.text(weather_state_display.text)
     end
   end

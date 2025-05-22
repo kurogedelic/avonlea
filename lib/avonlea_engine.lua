@@ -3,6 +3,7 @@
 -- Updated design based on three basic parameters (depth, glint, wind)
 
 local controlspec = require("core/controlspec")
+local constants = include("lib/constants")
 local weather = include("lib/weather")
 
 local Avonlea = {}
@@ -19,10 +20,10 @@ function Avonlea.add_params()
   params:add_separator("Sound Parameters")
   
   -- Three basic parameters
-  params:add_control("depth", "Depth", controlspec.new(0, 1, 'lin', 0.01, 0.5))
-  params:add_control("glint", "Glint", controlspec.new(0, 1, 'lin', 0.01, 0.4))
-  params:add_control("wind", "Wind", controlspec.new(0, 1, 'lin', 0.01, 0.3))
-  params:add_control("gain", "Master Gain", controlspec.new(0.1, 2.0, 'lin', 0.01, 0.9))
+  params:add_control("depth", "Depth", controlspec.new(constants.AUDIO.MIN_PARAM, constants.AUDIO.MAX_PARAM, 'lin', 0.01, constants.AUDIO.DEFAULT_DEPTH))
+  params:add_control("glint", "Glint", controlspec.new(constants.AUDIO.MIN_PARAM, constants.AUDIO.MAX_PARAM, 'lin', 0.01, constants.AUDIO.DEFAULT_GLINT))
+  params:add_control("wind", "Wind", controlspec.new(constants.AUDIO.MIN_PARAM, constants.AUDIO.MAX_PARAM, 'lin', 0.01, constants.AUDIO.DEFAULT_WIND))
+  params:add_control("gain", "Master Gain", controlspec.new(constants.AUDIO.MIN_GAIN, constants.AUDIO.MAX_GAIN, 'lin', 0.01, constants.AUDIO.DEFAULT_GAIN))
   
   -- Presets
   params:add_separator("Presets")
@@ -86,7 +87,7 @@ function Avonlea.init()
   
   -- Set default parameters on engine startup
   clock.run(function()
-    clock.sleep(0.3) -- Wait longer for engine to fully load
+    clock.sleep(constants.SYSTEM.ENGINE_INIT_DELAY - 0.2) -- Wait for engine to fully load
     Avonlea.update_weather_adjusted_params()
     engine.gain(params:get("gain"))
     print("Engine initialized with weather-adjusted parameters")

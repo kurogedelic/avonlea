@@ -2,6 +2,7 @@
 -- Simple implementation for calculating moon position and phase
 
 local MoonCalc = {}
+local constants = include("lib/constants")
 
 -- Convert degrees to radians
 function MoonCalc.deg_to_rad(deg)
@@ -51,7 +52,7 @@ function MoonCalc.calculate_simplified_position(jd, month, hour)
   local base_altitude = 30  -- Moderate altitude by default
   
   -- Adjust altitude by season (higher in winter, lower in summer)
-  local seasonal_offset = math.cos((month - 1) * math.pi / 6) * 15
+  local seasonal_offset = math.cos((month - 1) * math.pi / 6) * constants.MOON.SEASONAL_VARIATION
   
   -- Adjust altitude by time of day (hour angle effect)
   -- Night hours (18-6): Moon moves in an arc from east to west
@@ -69,7 +70,7 @@ function MoonCalc.calculate_simplified_position(jd, month, hour)
     
     -- Arc up and down (altitude peaks at midnight)
     local midnight_factor = 1.0 - math.abs(night_progress - 0.5) * 2  -- 0->1->0 across night
-    time_offset = midnight_factor * 20  -- Up to 20 degrees higher at midnight
+    time_offset = midnight_factor * constants.MOON.NIGHT_ALTITUDE_BONUS  -- Up to 20 degrees higher at midnight
   else
     -- Day hours: Moon is lower, or potentially below horizon
     local day_hour = hour - 6
@@ -101,17 +102,17 @@ end
 function MoonCalc.calculate_moon_position(jd, latitude, longitude)
   -- This is a simplified implementation. Actual astronomical calculations are more complex.
   -- Lunar cycle (days)
-  local lunarCycle = 29.53058868
-  local anomalisticMonth = 27.55455 -- Anomalistic month (period when moon is closest to Earth)
+  local lunarCycle = constants.MOON.LUNAR_CYCLE_DAYS
+  local anomalisticMonth = constants.MOON.ANOMALISTIC_MONTH
   
   -- Days since reference date
-  local daysSinceRef = jd - 2451550.1
+  local daysSinceRef = jd - constants.MOON.REFERENCE_JD
   
   -- Moon phase (radians)
   local phase = (daysSinceRef % lunarCycle) / lunarCycle * 2 * math.pi
   
   -- Moon orbital inclination (about 5.1 degrees)
-  local inclination = MoonCalc.deg_to_rad(5.1)
+  local inclination = MoonCalc.deg_to_rad(constants.MOON.ORBITAL_INCLINATION)
   
   -- Simplified position calculation
   -- In reality, more complex calculations are needed, but this simplified implementation reproduces basic motion

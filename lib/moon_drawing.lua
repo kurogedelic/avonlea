@@ -1,27 +1,27 @@
--- 月を描画する関数
+-- Function to draw the moon
 function draw_moon()
-  -- デバッグモードでなく、月が画面外なら描画しない
+  -- Don't draw if not in debug mode and moon is off-screen
   if not moon.debug_mode and not moon.visible then return end
   
-  -- 月が画面上に見える場合のみ描画
+  -- Draw only when moon is visible on screen
   local x, y = moon.x, moon.y
   local radius = MOON_SIZE / 2
   
-  -- 月の円を描画
-  screen.level(15) -- 最も明るい白
+  -- Draw moon circle
+  screen.level(15) -- Brightest white
   screen.circle(x, y, radius)
   
-  -- 月相に応じた満ち欠けを描画
+  -- Draw moon phases based on phase
   if moon.phase < 0.5 then
-    -- 上弦から満月まで
+    -- From first quarter to full moon
     screen.fill()
-    screen.level(0) -- 黒
+    screen.level(0) -- Black
     
-    -- 影の部分を描画
+    -- Draw shadow part
     local phase_angle = (0.5 - moon.phase) * math.pi
     local offset = math.cos(phase_angle) * radius
     
-    -- 円当たり判定で影の部分を表示
+    -- Use circle hit detection to show shadow part
     for yy = y - radius, y + radius do
       for xx = x - radius, x + offset do
         if ((xx - x) * (xx - x) + (yy - y) * (yy - y)) <= (radius * radius) then
@@ -31,15 +31,15 @@ function draw_moon()
       end
     end
   else
-    -- 満月から下弦まで
+    -- From full moon to last quarter
     screen.fill()
-    screen.level(0) -- 黒
+    screen.level(0) -- Black
     
-    -- 影の部分を描画
+    -- Draw shadow part
     local phase_angle = (moon.phase - 0.5) * math.pi
     local offset = math.cos(phase_angle) * radius
     
-    -- 円当たり判定で影の部分を表示
+    -- Use circle hit detection to show shadow part
     for yy = y - radius, y + radius do
       for xx = x + offset, x + radius do
         if ((xx - x) * (xx - x) + (yy - y) * (yy - y)) <= (radius * radius) then
@@ -50,7 +50,7 @@ function draw_moon()
     end
   end
   
-  -- 月の情報を表示
+  -- Display moon information
   if params:get("show_moon_info") == 2 or moon.debug_mode then
     screen.move(2, 10)
     screen.level(15)
@@ -60,7 +60,7 @@ function draw_moon()
     screen.move(2, 26)
     screen.text(string.format("Alt: %.1f", moon.altitude))
     
-    -- デバッグモードの場合はその旨を表示
+    -- Display DEBUG if in debug mode
     if moon.debug_mode then
       screen.level(10)
       screen.move(80, 10)

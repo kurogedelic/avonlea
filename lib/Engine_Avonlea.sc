@@ -5,6 +5,13 @@
 Engine_Avonlea : CroneEngine {
   var <synth;
   
+  // Default parameter values - centralized
+  var defaultDepth = 0.5;
+  var defaultGlint = 0.4;
+  var defaultWind = 0.3;
+  var defaultGain = 0.9;
+  var defaultAtmosphere = 1.0;
+  
   *new { arg context, doneCallback;
     ^super.new(context, doneCallback);
   }
@@ -192,11 +199,11 @@ Engine_Avonlea : CroneEngine {
     // Initial synth
     context.server.sync;
     synth = Synth.new(\avonlea, [
-      \depth, 0.5,
-      \glint, 0.4,
-      \wind, 0.3,
-      \gain, 0.9,
-      \atmosphere, 1.0
+      \depth, defaultDepth,
+      \glint, defaultGlint,
+      \wind, defaultWind,
+      \gain, defaultGain,
+      \atmosphere, defaultAtmosphere
     ], context.xg);
     
     // Define commands

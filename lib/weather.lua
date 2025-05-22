@@ -4,6 +4,7 @@
 
 local weather = {}
 local util = require "util"
+local constants = include("lib/constants")
 
 -- WMO Weather code mappings
 local wmo_codes = {
@@ -62,7 +63,7 @@ end
 
 -- Weather module state
 local last_fetch_time = 0
-local fetch_interval = 3600 -- 1 hour in seconds
+local fetch_interval = constants.WEATHER.FETCH_INTERVAL
 local current_weather = {
   code = 0,
   description = "Clear sky",
@@ -70,10 +71,10 @@ local current_weather = {
   fetching = false
 }
 
--- API configuration
-local API_URL = "https://api.open-meteo.com/v1/forecast"
-local LATITUDE = "46.493"
-local LONGITUDE = "-63.38729"
+-- API configuration  
+local API_URL = constants.WEATHER.API_URL
+local LATITUDE = tostring(constants.LOCATION.LATITUDE)
+local LONGITUDE = tostring(constants.LOCATION.LONGITUDE)
 
 -- Build API URL
 local function build_api_url()
@@ -96,7 +97,7 @@ local function fetch_weather_data()
   
   -- Use curl command with norns util.os_capture
   clock.run(function()
-    local curl_command = "curl -s --connect-timeout 10 --max-time 15 '" .. url .. "'"
+    local curl_command = "curl -s --connect-timeout " .. constants.WEATHER.CONNECT_TIMEOUT .. " --max-time " .. constants.WEATHER.MAX_TIMEOUT .. " '" .. url .. "'"
     
     -- Execute curl command
     local success, result = pcall(function()
@@ -218,7 +219,7 @@ end
 
 -- Manual weather override for testing/artistic control
 local manual_weather_override = nil
-local weather_states = {"auto", "clear", "cloudy", "rainy", "snowy"}
+local weather_states = constants.WEATHER.STATES
 local manual_weather_index = 1
 
 -- Set manual weather override
@@ -229,7 +230,7 @@ end
 
 -- Cycle through weather states manually
 function weather.cycle_manual_weather()
-  manual_weather_index = (manual_weather_index % 5) + 1
+  manual_weather_index = (manual_weather_index % #weather_states) + 1
   local state = weather_states[manual_weather_index]
   
   if state == "auto" then

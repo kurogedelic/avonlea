@@ -7,6 +7,7 @@
 math.randomseed(1908)
 
 local visual = {}
+local constants = include("lib/constants")
 
 -- Initialize once and persist
 visual.initialized = false
@@ -46,11 +47,11 @@ function visual.update_and_draw_rain(t)
     rain.x = rain.x + visual.wind.speed * 0.5 -- Wind effect
 
     -- Reset if off screen
-    if rain.y > 70 then
+    if rain.y > constants.UI.SCREEN_HEIGHT + 6 then
       rain.y = math.random(-20, -5)
-      rain.x = math.random(0, 128)
+      rain.x = math.random(0, constants.UI.SCREEN_WIDTH)
     end
-    if rain.x > 128 then rain.x = 0 end
+    if rain.x > constants.UI.SCREEN_WIDTH then rain.x = 0 end
     if rain.x < 0 then rain.x = 128 end
 
     -- Calculate wind wiggle for angle
@@ -78,11 +79,11 @@ function visual.update_and_draw_snow(t)
     snow.x = snow.x + snow.drift + visual.wind.speed * 0.3 -- Wind + drift
 
     -- Reset if off screen
-    if snow.y > 70 then
+    if snow.y > constants.UI.SCREEN_HEIGHT + 6 then
       snow.y = math.random(-20, -5)
-      snow.x = math.random(0, 128)
+      snow.x = math.random(0, constants.UI.SCREEN_WIDTH)
     end
-    if snow.x > 128 then snow.x = 0 end
+    if snow.x > constants.UI.SCREEN_WIDTH then snow.x = 0 end
     if snow.x < 0 then snow.x = 128 end
 
     -- Draw snowflake
@@ -127,10 +128,10 @@ function visual.init(moon_data, params)
 
   -- Initialize reeds
   visual.reeds = {}
-  for i = 1, 60 do
-    local x = math.random(0, 127)
-    local y = math.random(56, 63)
-    local h = math.random(4, 12)
+  for i = 1, constants.VISUAL.NUM_REEDS do
+    local x = math.random(0, constants.UI.SCREEN_WIDTH - 1)
+    local y = math.random(constants.VISUAL.REED_Y_MIN, constants.VISUAL.REED_Y_MAX)
+    local h = math.random(constants.VISUAL.REED_HEIGHT_MIN, constants.VISUAL.REED_HEIGHT_MAX)
     local phase = math.random(0, 100) / 100
     local color = math.random(1, 4)
     table.insert(visual.reeds, { x = x, y = y, h = h, phase = phase, color = color })
@@ -139,15 +140,15 @@ function visual.init(moon_data, params)
   -- Initialize stars
   visual.stars = {}
   -- Generate more stars and ensure some near the left edge
-  for i = 1, 30 do
+  for i = 1, constants.VISUAL.NUM_STARS do
     local x, y
     if i <= 5 then
       -- Guarantee some stars in the left 0-20px region
       x = math.random(0, 20)
-      y = math.random(0, 17) -- above hills
+      y = math.random(0, constants.VISUAL.STAR_Y_MAX) -- above hills
     else
-      x = math.random(0, 127)
-      y = math.random(0, 17) -- above hills
+      x = math.random(0, constants.UI.SCREEN_WIDTH - 1)
+      y = math.random(0, constants.VISUAL.STAR_Y_MAX) -- above hills
     end
     local phase = math.random(0, 100) / 100
     local freq = math.random(25, 75) / 100 -- Halved frequency for slower animation
@@ -157,10 +158,10 @@ function visual.init(moon_data, params)
   -- Initialize lake glints
   visual.glints = {}
   -- Increase number of glints for more reflections
-  for i = 1, 45 do
-    local x = math.random(0, 127)
-    local y = math.random(34, 50) -- lake surface area
-    local len = math.random(3, 10)
+  for i = 1, constants.VISUAL.NUM_GLINTS do
+    local x = math.random(0, constants.UI.SCREEN_WIDTH - 1)
+    local y = math.random(constants.VISUAL.GLINT_Y_MIN, constants.VISUAL.GLINT_Y_MAX) -- lake surface area
+    local len = math.random(constants.VISUAL.GLINT_LENGTH_MIN, constants.VISUAL.GLINT_LENGTH_MAX)
     local phase = math.random(0, 100) / 100
     local freq = math.random(20, 50) / 100
     table.insert(visual.glints, { x = x, y = y, len = len, phase = phase, freq = freq })
@@ -169,7 +170,7 @@ function visual.init(moon_data, params)
   -- Initialize trees on distant hills
   visual.trees = {}
   -- Create more groups of trees
-  local num_groups = 10
+  local num_groups = constants.VISUAL.NUM_TREE_GROUPS
   for g = 1, num_groups do
     -- Each group has a cluster of trees
     local group_x = 5 + math.random(0, 118)    -- Spread across screen
@@ -246,12 +247,12 @@ end
 -- Initialize rain particles
 function visual.init_rain_particles()
   visual.weather.rain_particles = {}
-  for i = 1, 10 do
+  for i = 1, constants.VISUAL.NUM_RAIN_PARTICLES do
     table.insert(visual.weather.rain_particles, {
       x = math.random(0, 128),
       y = math.random(-20, 64),
-      speed = 10 + math.random() * 5, -- Faster: 3-6
-      length = 5 + math.random() * 5  -- Longer: 5-9
+      speed = constants.VISUAL.RAIN_SPEED_MIN + math.random() * (constants.VISUAL.RAIN_SPEED_MAX - constants.VISUAL.RAIN_SPEED_MIN),
+      length = constants.VISUAL.RAIN_LENGTH_MIN + math.random() * (constants.VISUAL.RAIN_LENGTH_MAX - constants.VISUAL.RAIN_LENGTH_MIN)
     })
   end
 end
@@ -259,13 +260,13 @@ end
 -- Initialize snow particles
 function visual.init_snow_particles()
   visual.weather.snow_particles = {}
-  for i = 1, 30 do
+  for i = 1, constants.VISUAL.NUM_SNOW_PARTICLES do
     table.insert(visual.weather.snow_particles, {
       x = math.random(0, 128),
       y = math.random(-20, 64),
-      speed = 0.5 + math.random() * 0.8,
+      speed = constants.VISUAL.SNOW_SPEED_MIN + math.random() * (constants.VISUAL.SNOW_SPEED_MAX - constants.VISUAL.SNOW_SPEED_MIN),
       drift = math.random() * 0.5 - 0.25,
-      size = 0.5 + math.random() * 0.5 -- Smaller: 0.5-1.0
+      size = constants.VISUAL.SNOW_SIZE_MIN + math.random() * (constants.VISUAL.SNOW_SIZE_MAX - constants.VISUAL.SNOW_SIZE_MIN)
     })
   end
 end

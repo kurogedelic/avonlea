@@ -2,6 +2,7 @@
 -- Module for handling shooting stars in the Avonlea sky
 
 local shooting_star = {}
+local constants = include("lib/constants")
 
 -- Shooting star settings
 shooting_star.config = {
@@ -14,7 +15,7 @@ shooting_star.config = {
   brightness = 0,   -- Brightness (1-15)
   lifetime = 0,     -- How long it lasts (frames)
   current_life = 0, -- Current lifetime counter
-  chance = 0.01     -- Temporary increase for debugging
+  chance = constants.VISUAL.SHOOTING_STAR_CHANCE
 }
 
 -- Initialize a new shooting star
@@ -28,8 +29,8 @@ function shooting_star.init()
 
   -- Calculate direction for 120 degrees (southwest direction)
   -- 120 degrees = southwest, pointing down and left
-  local angle_rad = math.rad(120)  -- Convert 120 degrees to radians
-  local speed = math.random(15, 25) / 10  -- Speed between 1.5-2.5 pixels per frame
+  local angle_rad = math.rad(constants.VISUAL.SHOOTING_STAR_ANGLE)  -- Convert degrees to radians
+  local speed = (constants.VISUAL.SHOOTING_STAR_SPEED_MIN + math.random() * (constants.VISUAL.SHOOTING_STAR_SPEED_MAX - constants.VISUAL.SHOOTING_STAR_SPEED_MIN))
   
   shooting_star.config.dx = math.cos(angle_rad) * speed  -- X component (negative = leftward)
   shooting_star.config.dy = math.sin(angle_rad) * speed  -- Y component (positive = downward)
@@ -41,13 +42,13 @@ function shooting_star.init()
   shooting_star.config.lifetime = math.floor(math.min(frames_to_left_edge, frames_to_bottom) * 0.9)
 
   -- Debug info
-  print(string.format("New shooting star: Start(%.1f, %.1f) Angle=120° Direction(%.2f, %.2f)", 
+  print(string.format("New shooting star: Start(%.1f, %.1f) Angle=%d° Direction(%.2f, %.2f)", 
         shooting_star.config.x, shooting_star.config.y, 
-        shooting_star.config.dx, shooting_star.config.dy))
+        constants.VISUAL.SHOOTING_STAR_ANGLE, shooting_star.config.dx, shooting_star.config.dy))
 
   -- Set random properties
-  shooting_star.config.length = math.random(4, 10)
-  shooting_star.config.brightness = math.random(8, 15)
+  shooting_star.config.length = constants.VISUAL.SHOOTING_STAR_LENGTH_MIN + math.random(constants.VISUAL.SHOOTING_STAR_LENGTH_MAX - constants.VISUAL.SHOOTING_STAR_LENGTH_MIN)
+  shooting_star.config.brightness = constants.VISUAL.SHOOTING_STAR_BRIGHTNESS_MIN + math.random(constants.VISUAL.SHOOTING_STAR_BRIGHTNESS_MAX - constants.VISUAL.SHOOTING_STAR_BRIGHTNESS_MIN)
 end
 
 -- Draw the shooting star
