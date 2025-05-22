@@ -44,11 +44,10 @@ moves with the world.
 - **E2**: "the depths of the lake"
 - **E3**: Surface glint
 - **K2**: Cycle weather mode (Auto / Clear / Cloudy / Rainy / Snowy)
-- **K3**: Toggle moon info display (also refreshes time & weather)
+- **K3**: Toggle time display (also refreshes time & weather)
 
 > note: auto mode uses realtime weather data.  
-> Location: 46.49300°N, 63.38729°W (Prince Edward Island)  
-> Time is always displayed in the top-right corner.
+> Location: 46.49300°N, 63.38729°W (Prince Edward Island)
 
 ---
 

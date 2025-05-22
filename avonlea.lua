@@ -237,8 +237,8 @@ function init()
   -- Initialize moon data
   update_moon_data()
 
-  -- Moon info display
-  params:add_option("show_moon_info", "Show Moon Info", { "No", "Yes" }, 2)
+  -- Time display toggle
+  params:add_option("show_moon_info", "Show Time", { "No", "Yes" }, 2)
 
   -- Initialize visual module
   visual.init(moon, params)
@@ -354,7 +354,7 @@ function key(n, z)
     weather_state_display.show_time = util.time()
     
   elseif n == 3 and z == 1 then
-    -- K3 toggles moon info display (and silently refreshes time & weather)
+    -- K3 toggles time display (and silently refreshes time & weather)
     local current_info = params:get("show_moon_info")
     local new_info = (current_info == 1) and 2 or 1
     params:set("show_moon_info", new_info)

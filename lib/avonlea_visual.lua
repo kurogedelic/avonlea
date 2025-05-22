@@ -409,23 +409,14 @@ function visual.draw_moon(t)
     screen.blend_mode(0) -- Reset blend mode
   end
 
-  -- Display moon information if requested
+  -- Show time if requested (no moon details)
   if visual.params:get("show_moon_info") == 2 then
-    screen.move(2, 10)
+    local time_str = os.date("%H:%M")
+    local text_width = screen.text_extents(time_str)
     screen.level(15)
-    screen.text(string.format("Phase: %.2f", visual.moon.phase))
-    screen.move(2, 18)
-    screen.text(string.format("Az: %.1f", visual.moon.azimuth))
-    screen.move(2, 26)
-    screen.text(string.format("Alt: %.1f", visual.moon.altitude))
+    screen.move(128 - text_width - 2, 10)
+    screen.text(time_str)
   end
-  
-  -- Always show current time (independent of moon info setting)
-  local time_str = os.date("%H:%M")
-  local text_width = screen.text_extents(time_str)
-  screen.level(8)  -- Slightly dimmer than moon info
-  screen.move(128 - text_width - 2, 10)
-  screen.text(time_str)
 end
 
 -- Draw trees on hills
