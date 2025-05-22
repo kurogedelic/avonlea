@@ -316,16 +316,19 @@ function enc(n, d)
   -- Map encoders to parameters using the assignment variables
   if n == WIND_ENCODER then
     params:delta("wind", d * 0.2)
+    print(string.format("E1 Wind: %.3f", params:get("wind")))
     -- Reset parameter display timer
     show_params_time = util.time()
     show_params = true
   elseif n == DEPTH_ENCODER then
     params:delta("depth", d * 0.2)
+    print(string.format("E2 Depth: %.3f", params:get("depth")))
     -- Reset parameter display timer
     show_params_time = util.time()
     show_params = true
   elseif n == GLINT_ENCODER then
     params:delta("glint", d * 0.2)
+    print(string.format("E3 Glint: %.3f", params:get("glint")))
     -- Reset parameter display timer
     show_params_time = util.time()
     show_params = true

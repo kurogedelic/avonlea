@@ -94,24 +94,24 @@ Engine_Avonlea : CroneEngine {
       
       // Wind elements made more organic
       windModulation = LFNoise2.kr(0.08 + (windSpeed * 0.1)); // Smoother modulation
-      windNoise = PinkNoise.ar(windSpeed * 0.3);
+      windNoise = PinkNoise.ar(windSpeed * 1.5); // Much louder for testing
       
       // Create wind sound in multiple frequency bands
       windFiltered = 
         // Low frequencies - warm presence
-        LPF.ar(windNoise, 200 + (windSpeed * 100)) * 0.6 +
+        LPF.ar(windNoise, 200 + (windSpeed * 100)) * 1.0 +
         // Mid frequencies - wind whispers
         BPF.ar(
           windNoise, 
           SinOsc.kr(0.03 + (windSpeed * 0.05)).range(400, 800),
           0.4
-        ) * 0.3 +
+        ) * 1.0 +
         // High frequencies - delicate air texture
         HPF.ar(
           windNoise, 
           2000 + (windSpeed * 1000),
           0.1
-        ) * windSpeed * 0.2;
+        ) * windSpeed * 1.0;
       
       // Generate gentle lullaby-like melody
       pulseRate = 0.85; // Stable tempo like a heartbeat
@@ -158,7 +158,7 @@ Engine_Avonlea : CroneEngine {
       );
       
       // Balanced mix of main sound, wind sound, and lullaby
-      drone = drone + (windFiltered * windSpeed * 0.6) + melody;
+      drone = drone + (windFiltered * 2.0) + melody;
       
       // Complex spatial feel with multiple feedback paths
       drone = 
@@ -175,8 +175,8 @@ Engine_Avonlea : CroneEngine {
         LPF.ar(drone, 600) * 1.2 +
         // Slight mid frequency reduction (reduce aggressiveness)
         BPF.ar(drone, 1200, 1) * 0.8 +
-        // High frequency transparency (reduce amount)
-        HPF.ar(drone, 5000) * 0.5;
+        // High frequency transparency (preserve wind texture)
+        HPF.ar(drone, 3000) * 0.8;
       
       // Final delay and panning
       delayL = DelayL.ar(drone, 0.15, delayTimeL);
@@ -202,14 +202,17 @@ Engine_Avonlea : CroneEngine {
     // Define commands
     this.addCommand("depth", "f", { |msg|
       synth.set(\depth, msg[1]);
+      ("Engine depth: " ++ msg[1]).postln;
     });
     
     this.addCommand("glint", "f", { |msg|
       synth.set(\glint, msg[1]);
+      ("Engine glint: " ++ msg[1]).postln;
     });
     
     this.addCommand("wind", "f", { |msg|
       synth.set(\wind, msg[1]);
+      ("Engine wind: " ++ msg[1]).postln;
     });
     
     this.addCommand("gain", "f", { |msg|
