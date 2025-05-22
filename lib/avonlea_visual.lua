@@ -418,13 +418,14 @@ function visual.draw_moon(t)
     screen.text(string.format("Az: %.1f", visual.moon.azimuth))
     screen.move(2, 26)
     screen.text(string.format("Alt: %.1f", visual.moon.altitude))
-
-    -- Show current time (use os.date instead of current_date)
-    local time_str = os.date("%H:%M")
-    local text_width = screen.text_extents(time_str)
-    screen.move(128 - text_width - 2, 10)
-    screen.text(time_str)
   end
+  
+  -- Always show current time (independent of moon info setting)
+  local time_str = os.date("%H:%M")
+  local text_width = screen.text_extents(time_str)
+  screen.level(8)  -- Slightly dimmer than moon info
+  screen.move(128 - text_width - 2, 10)
+  screen.text(time_str)
 end
 
 -- Draw trees on hills

@@ -354,12 +354,15 @@ function key(n, z)
     weather_state_display.show_time = util.time()
     
   elseif n == 3 and z == 1 then
-    -- K3 refreshes current time and weather (silent update)
-    set_current_time(true) -- Pass true for silent update
+    -- K3 toggles moon info display (and silently refreshes time & weather)
+    local current_info = params:get("show_moon_info")
+    local new_info = (current_info == 1) and 2 or 1
+    params:set("show_moon_info", new_info)
+    
+    -- Silent time and weather update
+    set_current_time(true)
     weather.force_update()
-    -- Update sound when real weather changes
     avonlea.update_weather()
-    -- Don't show weather state display for manual refresh
   end
 end
 
