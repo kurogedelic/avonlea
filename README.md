@@ -49,4 +49,4 @@ Prince Edward Island into a quiet, glowing box.
 Script / Sound: @kurogedelic  
 Weather: Open-Meteo  
 Inspiration: L. M. Montgomery  
-Lines thread: https://llllllll.co/t/xxxxx
+Lines thread: https://llllllll.co/t/avonlea/71994

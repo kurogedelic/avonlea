@@ -1,6 +1,6 @@
 -- avonlea
 -- v1.0.0 @kurogedelic
--- llllllll.co/t/12345
+-- llllllll.co/t/avonlea/71994
 --
 -- Lake of Shining Waters,
 -- hills of stillness,
