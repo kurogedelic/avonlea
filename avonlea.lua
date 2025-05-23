@@ -1,12 +1,11 @@
--- Avonlea
--- the Lake of Shining Waters,
--- and the hills of stillness,
--- as A. Shirley once saw them,
+-- avonlea
+-- v1.0.0 @kurogedelic
+-- llllllll.co/t/12345
+--
+-- Lake of Shining Waters,
+-- hills of stillness,
 -- held in this quiet box.
--- tracks the sky above
--- Prince Edward Island,
--- and brings its present
--- gently into view.
+-- Tracks sky above the place
 
 -- parameters
 local show_params = false
@@ -50,14 +49,14 @@ local current_date = { -- Initial date/time
 
 -- Moon information
 local moon = {
-  phase = 0,        -- Moon phase (0-1)
-  azimuth = 0,      -- Azimuth angle
-  altitude = 0,     -- Altitude
-  x = 0,            -- X coordinate on screen
-  y = 0,            -- Y coordinate on screen
-  visible = false,  -- Visible on screen
-  shape_data = nil, -- Moon shape data
-  size = UI.MOON_SIZE  -- Moon size (for visual module)
+  phase = 0,          -- Moon phase (0-1)
+  azimuth = 0,        -- Azimuth angle
+  altitude = 0,       -- Altitude
+  x = 0,              -- X coordinate on screen
+  y = 0,              -- Y coordinate on screen
+  visible = false,    -- Visible on screen
+  shape_data = nil,   -- Moon shape data
+  size = UI.MOON_SIZE -- Moon size (for visual module)
 }
 
 -- Control flag to prevent multiple moon updates during preset changes
@@ -78,28 +77,28 @@ function set_current_time(silent)
   silent_update = silent
   -- Get current time using standard Lua functions
   local current_timestamp = os.time()
-  
+
   -- Apply timezone offset
   local offset = current_date.time_zone * 3600
   local adjusted_timestamp = current_timestamp + offset
-  
+
   -- Get date components
   local date_table = os.date("*t", adjusted_timestamp)
-  
+
   -- Debug time info
   local time_str = os.date("%Y-%m-%d %H:%M:%S", adjusted_timestamp)
   print("Current system time: " .. time_str)
-  print(string.format("Time components: %04d-%02d-%02d %02d:%02d:%02d", 
-    date_table.year, date_table.month, date_table.day, 
+  print(string.format("Time components: %04d-%02d-%02d %02d:%02d:%02d",
+    date_table.year, date_table.month, date_table.day,
     date_table.hour, date_table.min, date_table.sec))
-  
+
   -- Update current_date structure
   current_date.year = date_table.year
   current_date.month = date_table.month
   current_date.day = date_table.day
   current_date.hour = date_table.hour
   current_date.minute = date_table.min
-  
+
   -- Update parameters (this will trigger update_moon_data via param actions)
   updating_preset = true
   params:set("year", date_table.year)
@@ -108,7 +107,7 @@ function set_current_time(silent)
   params:set("hour", date_table.hour)
   params:set("minute", date_table.min)
   updating_preset = false
-  
+
   -- Update moon data once after all parameters are set
   update_moon_data()
 end
@@ -159,7 +158,7 @@ function update_moon_data()
   -- Map moon altitude to spatial parameter
   local moon_glint = util.linlin(0, 90, constants.MOON.GLINT_MIN, constants.MOON.GLINT_MAX, math.max(0, moon.altitude))
   params:set("glint", moon_glint)
-  
+
   -- Reset silent update flag
   silent_update = false
 
@@ -171,7 +170,8 @@ function update_moon_data()
     current_date.hour,
     current_date.minute)
   print("=== Moon update at " .. date_str .. " ===")
-  print(string.format("Location: Lat=%.5f, Long=%.5f, View=%d°", LOCATION.LATITUDE, LOCATION.LONGITUDE, LOCATION.VIEW_AZIMUTH))
+  print(string.format("Location: Lat=%.5f, Long=%.5f, View=%d°", LOCATION.LATITUDE, LOCATION.LONGITUDE,
+    LOCATION.VIEW_AZIMUTH))
   print(string.format("Julian Date: %.5f", jd))
   print(string.format("Moon phase: %.2f", moon.phase))
   print(string.format("Moon position: Azimuth=%.2f°, Altitude=%.2f°", moon.azimuth, moon.altitude))
@@ -262,7 +262,7 @@ function init()
     engine.depth(params:get("depth"))
     engine.glint(params:get("glint"))
     engine.gain(params:get("gain"))
-    
+
     -- Now update weather (after engine is ready)
     avonlea.update_weather()
   end)
@@ -282,7 +282,7 @@ function init()
       local old_state = weather.get_effective_state()
       weather.update()
       local new_state = weather.get_effective_state()
-      
+
       -- Update sound if weather changed
       if old_state ~= new_state then
         avonlea.update_weather()
@@ -344,21 +344,20 @@ function key(n, z)
     -- K2 cycles through weather states (Auto -> Clear -> Cloudy -> Rainy -> Snowy)
     local new_weather_state = weather.cycle_manual_weather()
     print("Weather mode: " .. new_weather_state)
-    
+
     -- Update sound engine with new weather
     avonlea.update_weather()
-    
+
     -- Show weather state display
     weather_state_display.text = weather.get_display_state()
     weather_state_display.visible = true
     weather_state_display.show_time = util.time()
-    
   elseif n == 3 and z == 1 then
     -- K3 toggles time display (and silently refreshes time & weather)
     local current_info = params:get("show_moon_info")
     local new_info = (current_info == 1) and 2 or 1
     params:set("show_moon_info", new_info)
-    
+
     -- Silent time and weather update
     set_current_time(true)
     weather.force_update()
@@ -371,7 +370,7 @@ function redraw()
   -- Update visual module with current weather state
   local current_weather_state = weather.get_effective_state()
   visual.set_weather_state(current_weather_state)
-  
+
   visual.redraw()
 
   -- Display parameter information (only when encoders are used)
@@ -390,7 +389,7 @@ function redraw()
       params:get("glint") * 10,
       params:get("wind") * 10))
   end
-  
+
   -- Display weather state (temporarily, same height as params)
   if weather_state_display.visible then
     local current_time = util.time()
@@ -399,7 +398,7 @@ function redraw()
     else
       screen.level(UI.MAX_SCREEN_LEVEL)
       local text_width = screen.text_extents(weather_state_display.text)
-      screen.move(UI.SCREEN_WIDTH - text_width - 5, 10)  -- Right aligned with margin
+      screen.move(UI.SCREEN_WIDTH - text_width - 5, 10) -- Right aligned with margin
       screen.text(weather_state_display.text)
     end
   end
