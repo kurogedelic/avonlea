@@ -189,9 +189,6 @@ function init()
   avonlea.add_params()
   avonlea.init()
 
-  -- Add wind parameter (connect with engine's wind parameter)
-  params:add_separator("Visual Parameters")
-
   -- Add date and time settings
   params:add_separator("Moon Settings")
 
