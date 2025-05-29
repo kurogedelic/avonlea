@@ -50,7 +50,6 @@ Prince Edward Island into a quiet, glowing box.
 - Fixed "Show Moon Info" display to show both time and moon phase percentage
 - Changed K3 functionality to only toggle moon info display (removed automatic time sync)
 - Added shooting star debug logging when debug flag is enabled
-- Added CLAUDE.md to .gitignore
 - Set debug flag to false by default for production use
 
 ### v1.0.1
