@@ -7,7 +7,7 @@ Avonlea is a tranquil ambient sketch for norns (sound computer/music platform). 
 - **Platform**: norns (monome)
 - **Language**: Lua
 - **Engine**: Avonlea (SuperCollider engine)
-- **Version**: v1.0.1
+- **Version**: v1.1.0
 
 ## Project Structure
 ```
@@ -43,7 +43,7 @@ avonlea/
 - **E2**: Depth control (0.0-1.0)
 - **E3**: Glint control (0.0-1.0) 
 - **K2**: Cycle through weather states
-- **K3**: Refresh sky/visual elements
+- **K3**: Toggle moon info display (time and moon phase %)
 
 ### Extended Parameters (via norns menu)
 

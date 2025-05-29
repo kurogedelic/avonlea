@@ -1,5 +1,5 @@
 -- avonlea
--- v1.0.1 @kurogedelic
+-- v1.1.0 @kurogedelic
 -- llllllll.co/t/avonlea/71994
 --
 -- Lake of Shining Waters,
@@ -234,8 +234,8 @@ function init()
   -- Initialize moon data
   update_moon_data()
 
-  -- Time display toggle
-  params:add_option("show_moon_info", "Show Time", { "No", "Yes" }, 2)
+  -- Moon info display toggle
+  params:add_option("show_moon_info", "Show Moon Info", { "No", "Yes" }, 2)
 
   -- Initialize visual module
   visual.init(moon, params)
@@ -350,15 +350,10 @@ function key(n, z)
     weather_state_display.visible = true
     weather_state_display.show_time = util.time()
   elseif n == 3 and z == 1 then
-    -- K3 toggles time display (and silently refreshes time & weather)
+    -- K3 toggles moon info display
     local current_info = params:get("show_moon_info")
     local new_info = (current_info == 1) and 2 or 1
     params:set("show_moon_info", new_info)
-
-    -- Silent time and weather update
-    set_current_time(true)
-    weather.force_update()
-    avonlea.update_weather()
   end
 end
 

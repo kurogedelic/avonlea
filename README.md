@@ -32,7 +32,7 @@ Prince Edward Island into a quiet, glowing box.
 - **E2**: Depth
 - **E3**: Glint
 - **K2**: Cycle weather
-- **K3**: Refresh sky
+- **K3**: Toggle moon info display
 
 ---
 
@@ -45,6 +45,13 @@ Prince Edward Island into a quiet, glowing box.
 ---
 
 ## Changelog
+
+### v1.1.0
+- Fixed "Show Moon Info" display to show both time and moon phase percentage
+- Changed K3 functionality to only toggle moon info display (removed automatic time sync)
+- Added shooting star debug logging when debug flag is enabled
+- Added CLAUDE.md to .gitignore
+- Set debug flag to false by default for production use
 
 ### v1.0.1
 - Enhanced E2 (Depth) control for more dramatic tonal changes

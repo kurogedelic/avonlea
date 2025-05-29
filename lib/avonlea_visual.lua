@@ -11,7 +11,7 @@ local constants = include("lib/constants")
 
 -- Initialize once and persist
 visual.initialized = false
-visual.DEBUG = true -- Set to true to enable additional debug output
+visual.DEBUG = false -- Set to true to enable additional debug output
 
 -- Store global time reference for continuous animation
 visual.start_time = nil
@@ -38,6 +38,9 @@ visual.weather = {
 
 -- Include the shooting star module
 local shooting_star = include("lib/shooting_star")
+
+-- Set shooting star debug to match visual debug
+shooting_star.set_debug(visual.DEBUG)
 
 -- Update and draw rain
 function visual.update_and_draw_rain(t)
@@ -409,13 +412,20 @@ function visual.draw_moon(t)
     screen.blend_mode(0) -- Reset blend mode
   end
 
-  -- Show time if requested (no moon details)
+  -- Show moon info if requested
   if visual.params:get("show_moon_info") == 2 then
+    -- Show time
     local time_str = os.date("%H:%M")
-    local text_width = screen.text_extents(time_str)
     screen.level(15)
-    screen.move(128 - text_width - 2, 10)
+    screen.move(2, 10)
     screen.text(time_str)
+    
+    -- Show moon phase percentage
+    local phase_percent = math.floor(visual.moon.phase * 100)
+    local phase_str = phase_percent .. "%"
+    local phase_width = screen.text_extents(phase_str)
+    screen.move(128 - phase_width - 2, 10)
+    screen.text(phase_str)
   end
 end
 
