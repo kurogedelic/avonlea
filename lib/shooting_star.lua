@@ -4,6 +4,9 @@
 local shooting_star = {}
 local constants = include("lib/constants")
 
+-- Debug flag reference
+shooting_star.DEBUG = false
+
 -- Shooting star settings
 shooting_star.config = {
   active = false,   -- Is a shooting star currently active
@@ -42,9 +45,11 @@ function shooting_star.init()
   shooting_star.config.lifetime = math.floor(math.min(frames_to_left_edge, frames_to_bottom) * 0.9)
 
   -- Debug info
-  print(string.format("New shooting star: Start(%.1f, %.1f) Angle=%d° Direction(%.2f, %.2f)", 
-        shooting_star.config.x, shooting_star.config.y, 
-        constants.VISUAL.SHOOTING_STAR_ANGLE, shooting_star.config.dx, shooting_star.config.dy))
+  if shooting_star.DEBUG then
+    print(string.format("New shooting star: Start(%.1f, %.1f) Angle=%d° Direction(%.2f, %.2f)", 
+          shooting_star.config.x, shooting_star.config.y, 
+          constants.VISUAL.SHOOTING_STAR_ANGLE, shooting_star.config.dx, shooting_star.config.dy))
+  end
 
   -- Set random properties
   shooting_star.config.length = constants.VISUAL.SHOOTING_STAR_LENGTH_MIN + math.random(constants.VISUAL.SHOOTING_STAR_LENGTH_MAX - constants.VISUAL.SHOOTING_STAR_LENGTH_MIN)
@@ -97,6 +102,11 @@ function shooting_star.update()
   if not shooting_star.config.active and math.random() < shooting_star.config.chance then
     shooting_star.init()
   end
+end
+
+-- Set debug mode
+function shooting_star.set_debug(debug)
+  shooting_star.DEBUG = debug
 end
 
 return shooting_star
