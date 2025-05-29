@@ -235,7 +235,7 @@ function init()
   update_moon_data()
 
   -- Moon info display toggle
-  params:add_option("show_moon_info", "Show Moon Info", { "No", "Yes" }, 2)
+  params:add_option("show_moon_info", "Show Moon Info", { "No", "Yes" }, 1)
 
   -- Initialize visual module
   visual.init(moon, params)
