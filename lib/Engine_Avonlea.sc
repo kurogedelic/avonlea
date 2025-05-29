@@ -55,7 +55,7 @@ Engine_Avonlea : CroneEngine {
       
       // Generate all parameters from Norns' three knobs
       // depth parameter (0.0~1.0) - Sound warmth and depth
-      depthMorph = depth.linlin(0, 1, 0.2, 0.8); // Filter depth
+      depthMorph = depth.linlin(0, 1, 0.1, 1.0); // Expanded filter depth range
       moonPhase = depth.linlin(0, 1, 0.3, 0.8);   // Moon phase
       lullaby = depth.linlin(0, 1, 0.3, 0.7);     // Lullaby element
       
@@ -74,7 +74,7 @@ Engine_Avonlea : CroneEngine {
       lfoGlintSig  = LFNoise2.kr(0.12 * lfoRate).range(-1, 1) * lfoDepth; // Smoother modulation
       lfoWeightSig = SinOsc.kr(0.007 * lfoRate).range(-1, 1) * lfoDepth;
       
-      actualDepth  = 2000 + (lfoDepthSig * depthMorph * 2000); // More low frequencies
+      actualDepth  = 200 + (depthMorph * 8000) + (lfoDepthSig * depthMorph * 2000); // Much wider frequency range: 200Hz to 8200Hz
       weight = 0.4 + (lfoWeightSig * weightMorph * 0.15); // Delay balance adjustment
       
       // More organic delay times
@@ -175,13 +175,13 @@ Engine_Avonlea : CroneEngine {
         )
       );
     
-      // Sound blending
-      blend = SinOsc.kr(0.0025).range(0.3, 0.6); // More gentle changes
+      // Sound blending - now influenced by depth parameter
+      blend = SinOsc.kr(0.0025).range(0.3, 0.6) + (depth * 0.3); // Depth affects blend position
       
       // Crossfader adjustment (more toward low frequencies)
       drone = XFade2.ar(
         LPF.ar(base + shimmer, actualDepth),
-        HPF.ar(base + shimmer, 4000) * 0.7, // Slightly reduce highs
+        HPF.ar(base + shimmer, 4000) * 0.7 * (1 - (depth * 0.5)), // Depth reduces highs more
         blend * 1.6 - 0.8
       );
       
@@ -197,14 +197,14 @@ Engine_Avonlea : CroneEngine {
         // Original signal
         (drone * 0.8);
       
-      // Final EQ to increase softness
+      // Final EQ to increase softness - now more responsive to depth
       drone = 
-        // Low-mid frequency boost
-        LPF.ar(drone, 600) * 1.2 +
+        // Low-mid frequency boost - dramatically affected by depth
+        LPF.ar(drone, 600) * (1.2 + (depth * 0.8)) +
         // Slight mid frequency reduction (reduce aggressiveness)
-        BPF.ar(drone, 1200, 1) * 0.8 +
-        // High frequency transparency (preserve wind texture)
-        HPF.ar(drone, 3000) * 0.8;
+        BPF.ar(drone, 1200, 1) * (0.8 - (depth * 0.3)) +
+        // High frequency transparency (preserve wind texture) - reduced with depth
+        HPF.ar(drone, 3000) * (0.8 - (depth * 0.4));
       
       // Final delay and panning with feedback control
       delayL = DelayL.ar(drone + (LocalIn.ar(1) * delayFeedback), 0.15, delayTimeL);

@@ -44,6 +44,19 @@ Prince Edward Island into a quiet, glowing box.
 
 ---
 
+## Changelog
+
+### v1.0.1
+- Enhanced E2 (Depth) control for more dramatic tonal changes
+  - Expanded filter range from 200Hz to 8200Hz (previously 2000-4000Hz)
+  - Depth now affects frequency balance and warmth more significantly
+  - Increased bass boost and high frequency reduction at higher depth settings
+
+### v1.0.0
+- Initial release
+
+---
+
 ## Credits
 
 Script / Sound: @kurogedelic  
