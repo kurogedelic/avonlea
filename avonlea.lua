@@ -1,5 +1,5 @@
 -- avonlea
--- v1.0.0 @kurogedelic
+-- v1.0.1 @kurogedelic
 -- llllllll.co/t/avonlea/71994
 --
 -- Lake of Shining Waters,
@@ -188,9 +188,6 @@ function init()
   -- Initialize sound engine
   avonlea.add_params()
   avonlea.init()
-
-  -- Add wind parameter (connect with engine's wind parameter)
-  params:add_separator("Visual Parameters")
 
   -- Add date and time settings
   params:add_separator("Moon Settings")
