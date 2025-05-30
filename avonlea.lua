@@ -1,5 +1,5 @@
 -- avonlea
--- v1.1.0 @kurogedelic
+-- v1.1.1 @kurogedelic
 -- llllllll.co/t/avonlea/71994
 --
 -- Lake of Shining Waters,
