@@ -46,6 +46,11 @@ Prince Edward Island into a quiet, glowing box.
 
 ## Changelog
 
+### v1.1.1
+- Fixed SuperCollider syntax errors in Engine_Avonlea.sc
+  - Properly declared drySignal, wetSignal, and mixedSignal variables
+  - Fixed LocalIn stereo channel mismatch for correct feedback routing
+
 ### v1.1.0
 - Fixed "Show Moon Info" display to show both time and moon phase percentage
 - Changed K3 functionality to only toggle moon info display (removed automatic time sync)
