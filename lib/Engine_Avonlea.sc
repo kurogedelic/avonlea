@@ -52,6 +52,7 @@ Engine_Avonlea : CroneEngine {
       var shimmerBrightness, shimmerFreq, shimmerHigh, shimmerLow;
       var windNoise, windFiltered, windModulation;
       var pulseRate, melodyTone;
+      var drySignal, wetSignal, mixedSignal;
       
       // Generate all parameters from Norns' three knobs
       // depth parameter (0.0~1.0) - Sound warmth and depth
@@ -207,8 +208,8 @@ Engine_Avonlea : CroneEngine {
         HPF.ar(drone, 3000) * (0.8 - (depth * 0.4));
       
       // Final delay and panning with feedback control
-      delayL = DelayL.ar(drone + (LocalIn.ar(1) * delayFeedback), 0.15, delayTimeL);
-      delayR = DelayL.ar(drone + (LocalIn.ar(1) * delayFeedback), 0.15, delayTimeR);
+      delayL = DelayL.ar(drone + (LocalIn.ar(2)[0] * delayFeedback), 0.15, delayTimeL);
+      delayR = DelayL.ar(drone + (LocalIn.ar(2)[1] * delayFeedback), 0.15, delayTimeR);
       
       // Send delay feedback
       LocalOut.ar([delayL, delayR]);
@@ -241,9 +242,9 @@ Engine_Avonlea : CroneEngine {
       delayR = (delayR * stereoWidth) + (delayL * (1 - stereoWidth));
       
       // Apply delay mix parameter
-      var drySignal = [drone, drone];
-      var wetSignal = [delayL, delayR];
-      var mixedSignal = (drySignal * (1 - delayMix)) + (wetSignal * delayMix);
+      drySignal = [drone, drone];
+      wetSignal = [delayL, delayR];
+      mixedSignal = (drySignal * (1 - delayMix)) + (wetSignal * delayMix);
       
       Out.ar(out, mixedSignal * gain * atmosphere);
     }).add;
